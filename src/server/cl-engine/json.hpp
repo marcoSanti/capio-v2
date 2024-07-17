@@ -1,10 +1,10 @@
 #ifndef CAPIO_SERVER_UTILS_JSON_HPP
 #define CAPIO_SERVER_UTILS_JSON_HPP
 
-#include <singleheader/simdjson.h>
+#include "../../../cmake-build-debug/_deps/simdjson-src/singleheader/simdjson.h"
 
-#include "utils/metadata.hpp"
-#include "utils/types.hpp"
+#include "../utils/metadata.hpp"
+#include "../utils/types.hpp"
 
 void parse_conf_file(const std::string &conf_file, const std::filesystem::path &capio_dir) {
     START_LOG(gettid(), "call(config_file='%s', capio_dir='%s')", conf_file.c_str(),

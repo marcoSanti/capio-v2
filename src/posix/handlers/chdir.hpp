@@ -6,12 +6,6 @@
 
 #include "utils/filesystem.hpp"
 
-/*
- * chdir could be done to a CAPIO dir that is not present in the filesystem.
- * For this reason if chdir is done to a CAPIO directory we don't give control
- * to the kernel.
- */
-
 int chdir_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
     const std::string_view pathname(reinterpret_cast<const char *>(arg0));
     long tid = syscall_no_intercept(SYS_gettid);

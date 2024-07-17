@@ -10,9 +10,7 @@ int getcwd_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long a
 
     START_LOG(tid, "call(buf=0x%08x, size=%ld)", buf, size);
 
-    const std::filesystem::path &cwd = get_current_dir();
-
-    return CAPIO_POSIX_SYSCALL_SUCCESS;
+    return CAPIO_POSIX_SYSCALL_SKIP;
 }
 
 #endif // SYS_getcwd

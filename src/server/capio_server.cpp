@@ -30,10 +30,10 @@ CSDataBufferMap_t data_buffers;
 #include "capio/env.hpp"
 #include "capio/logger.hpp"
 #include "capio/semaphore.hpp"
+#include "cl-engine/json.hpp"
 #include "utils/capio_file.hpp"
 #include "utils/common.hpp"
 #include "utils/env.hpp"
-#include "utils/json.hpp"
 #include "utils/metadata.hpp"
 #include "utils/requests.hpp"
 
@@ -101,7 +101,7 @@ static constexpr std::array<CSHandler_t, CAPIO_NR_REQUESTS> build_request_handle
     return _request_handlers;
 }
 
-[[noreturn]] void capio_server(Semaphore &internal_server_sem) {
+[[noreturn]] void capio_server() {
     static const std::array<CSHandler_t, CAPIO_NR_REQUESTS> request_handlers =
         build_request_handlers_table();
 
@@ -115,7 +115,6 @@ static constexpr std::array<CSHandler_t, CAPIO_NR_REQUESTS> build_request_handle
 
     init_server();
 
-    internal_server_sem.unlock();
 
     auto str = std::unique_ptr<char[]>(new char[CAPIO_REQ_MAX_SIZE]);
     while (true) {
@@ -271,24 +270,15 @@ int parseCLI(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 
-    Semaphore internal_server_sem(0);
-
     std::cout << CAPIO_LOG_SERVER_BANNER;
 
     parseCLI(argc, argv);
 
     START_LOG(gettid(), "call()");
 
-    open_files_location();
-
     shm_canary = new CapioShmCanary(workflow_name);
 
-    std::thread server_thread(capio_server, std::ref(internal_server_sem));
-    LOG("capio_server thread started");
-    std::thread remote_listener_thread(capio_remote_listener, std::ref(internal_server_sem));
-    LOG("capio_remote_listener thread started.");
-    server_thread.join();
-    remote_listener_thread.join();
+    capio_server();
 
     delete backend;
     return 0;

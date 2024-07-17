@@ -5,7 +5,6 @@
 
 #include "capio/dirent.hpp"
 
-#include "utils/data.hpp"
 
 // TODO: too similar to capio_read, refactoring needed
 inline int getdents_handler_impl(long arg0, long arg1, long arg2, long *result, bool is64bit) {

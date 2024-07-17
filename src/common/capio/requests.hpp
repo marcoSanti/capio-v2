@@ -1,6 +1,7 @@
 #ifndef CAPIO_COMMON_REQUESTS_HPP
 #define CAPIO_COMMON_REQUESTS_HPP
 
+constexpr const int CAPIO_REQUEST_CONSENT             = 100;
 constexpr const int CAPIO_REQUEST_ACCESS              = 0;
 constexpr const int CAPIO_REQUEST_CLONE               = 1;
 constexpr const int CAPIO_REQUEST_CLOSE               = 2;
@@ -25,6 +26,8 @@ constexpr const int CAPIO_REQUEST_STAT                = 20;
 constexpr const int CAPIO_REQUEST_UNLINK              = 21;
 constexpr const int CAPIO_REQUEST_WRITE               = 22;
 constexpr const int CAPIO_REQUEST_RMDIR               = 23;
+constexpr const int CAPIO_REQUEST_CHDIR               = 24;
+constexpr const int CAPIO_REQUEST_FCHMOD              = 25;
 
 constexpr const int CAPIO_NR_REQUESTS = 24;
 

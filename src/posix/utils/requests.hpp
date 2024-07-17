@@ -33,10 +33,31 @@ inline void register_listener(long tid) {
     bufs_response->insert(std::make_pair(tid, p_buf_response));
 }
 
+
+void consent_to_proceed_request(const std::filesystem::path &path, const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
+    char req[CAPIO_REQ_MAX_SIZE];
+    sprintf(req, "%04d %ld %s", CAPIO_REQUEST_CONSENT, tid, path.c_str());
+    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+    off64_t res;
+    bufs_response->at(tid)->read(&res);
+}
+
+
 inline off64_t access_request(const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s", CAPIO_REQUEST_ACCESS, tid, path.c_str());
+    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+    off64_t res;
+    bufs_response->at(tid)->read(&res);
+    return res;
+}
+
+inline off64_t chdir_request(const std::filesystem::path &path, const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
+    char req[CAPIO_REQ_MAX_SIZE];
+    sprintf(req, "%04d %ld %s", CAPIO_REQUEST_CHDIR, tid, path.c_str());
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;
     bufs_response->at(tid)->read(&res);
@@ -51,10 +72,10 @@ inline void clone_request(const long parent_tid, const long child_tid) {
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 
-inline void close_request(const int fd, const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, tid=%ld)", fd, tid);
+inline void close_request(const std::filesystem::path &path, const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %ld %d", CAPIO_REQUEST_CLOSE, tid, fd);
+    sprintf(req, "%04d %ld %s", CAPIO_REQUEST_CLOSE, tid, path.c_str());
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 
@@ -103,6 +124,16 @@ inline void exit_group_request(const long tid) {
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld", CAPIO_REQUEST_EXIT_GROUP, tid);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+}
+
+inline off64_t fchmod_request(const std::filesystem::path &path, const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
+    char req[CAPIO_REQ_MAX_SIZE];
+    sprintf(req, "%04d %ld %s", CAPIO_REQUEST_FCHMOD, tid, path.c_str());
+    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+    off64_t res;
+    bufs_response->at(tid)->read(&res);
+    return res;
 }
 
 inline off64_t getdents_request(const int fd, const off64_t count, bool is64bit, const long tid) {

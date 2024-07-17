@@ -18,31 +18,11 @@ inline off64_t capio_faccessat(int dirfd, const std::string_view &pathname, mode
 
     std::filesystem::path path(pathname);
     if (path.is_relative()) {
-        if (dirfd == AT_FDCWD) {
-            path = capio_posix_realpath(pathname);
-            if (path.empty()) {
-                errno = ENONET;
-                return CAPIO_POSIX_SYSCALL_ERRNO;
-            }
-        } else {
-            if (!is_directory(dirfd)) {
-                LOG("dirfd does not point to a directory");
-                return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
-            }
-            const std::filesystem::path dir_path = get_dir_path(dirfd);
-            if (dir_path.empty()) {
-                return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
-            }
-            path = (dir_path / path).lexically_normal();
-            return is_capio_path(path) ? access_request(path, tid) : -2;
-        }
+        path = capio_posix_realpath(pathname);
     }
 
-    if (is_capio_path(path)) {
-        return access_request(path, tid);
-    } else {
-        return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
-    }
+    consent_to_proceed_request(path, tid);
+    return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
 }
 
 int access_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {

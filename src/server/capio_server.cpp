@@ -30,76 +30,13 @@ CSDataBufferMap_t data_buffers;
 #include "capio/env.hpp"
 #include "capio/logger.hpp"
 #include "capio/semaphore.hpp"
-#include "cl-engine/json.hpp"
-#include "utils/capio_file.hpp"
 #include "utils/common.hpp"
 #include "utils/env.hpp"
-#include "utils/metadata.hpp"
 #include "utils/requests.hpp"
 
-using namespace simdjson;
-
-int n_servers;
-// name of the node
-char *node_name;
-
-/*
- * For multithreading:
- * tid -> pid*/
-CSPidsMap_T pids;
-
-// tid -> application name
-CSAppsMap_t apps;
-
-// application name -> set of files already sent
-CSFilesSentMap_t files_sent;
-
-/*
- * pid -> pathname -> bool
- * Different threads with the same pid are treated as a single writer
- */
-CSWritersMap_t writers;
-
-CSClientsRemotePendingNFilesMap_t clients_remote_pending_nfiles;
-
-std::mutex nfiles_mutex;
-
-#include "handlers.hpp"
-#include "utils/location.hpp"
 #include "utils/signals.hpp"
 
-#include "remote/listener.hpp"
-
-static constexpr std::array<CSHandler_t, CAPIO_NR_REQUESTS> build_request_handlers_table() {
-    std::array<CSHandler_t, CAPIO_NR_REQUESTS> _request_handlers{0};
-
-    _request_handlers[CAPIO_REQUEST_ACCESS]              = access_handler;
-    _request_handlers[CAPIO_REQUEST_CLONE]               = clone_handler;
-    _request_handlers[CAPIO_REQUEST_CLOSE]               = close_handler;
-    _request_handlers[CAPIO_REQUEST_CREATE]              = create_handler;
-    _request_handlers[CAPIO_REQUEST_CREATE_EXCLUSIVE]    = create_exclusive_handler;
-    _request_handlers[CAPIO_REQUEST_DUP]                 = dup_handler;
-    _request_handlers[CAPIO_REQUEST_EXIT_GROUP]          = exit_group_handler;
-    _request_handlers[CAPIO_REQUEST_FSTAT]               = fstat_handler;
-    _request_handlers[CAPIO_REQUEST_GETDENTS]            = getdents_handler;
-    _request_handlers[CAPIO_REQUEST_GETDENTS64]          = getdents_handler;
-    _request_handlers[CAPIO_REQUEST_HANDSHAKE_NAMED]     = handshake_named_handler;
-    _request_handlers[CAPIO_REQUEST_HANDSHAKE_ANONYMOUS] = handshake_anonymous_handler;
-    _request_handlers[CAPIO_REQUEST_MKDIR]               = mkdir_handler;
-    _request_handlers[CAPIO_REQUEST_OPEN]                = open_handler;
-    _request_handlers[CAPIO_REQUEST_READ]                = read_handler;
-    _request_handlers[CAPIO_REQUEST_RENAME]              = rename_handler;
-    _request_handlers[CAPIO_REQUEST_RMDIR]               = rmdir_handler;
-    _request_handlers[CAPIO_REQUEST_SEEK]                = lseek_handler;
-    _request_handlers[CAPIO_REQUEST_SEEK_DATA]           = seek_data_handler;
-    _request_handlers[CAPIO_REQUEST_SEEK_END]            = seek_end_handler;
-    _request_handlers[CAPIO_REQUEST_SEEK_HOLE]           = seek_hole_handler;
-    _request_handlers[CAPIO_REQUEST_STAT]                = stat_handler;
-    _request_handlers[CAPIO_REQUEST_UNLINK]              = unlink_handler;
-    _request_handlers[CAPIO_REQUEST_WRITE]               = write_handler;
-
-    return _request_handlers;
-}
+#include "cl-engine/main.hpp"
 
 [[noreturn]] void capio_server() {
     static const std::array<CSHandler_t, CAPIO_NR_REQUESTS> request_handlers =
@@ -107,14 +44,9 @@ static constexpr std::array<CSHandler_t, CAPIO_NR_REQUESTS> build_request_handle
 
     START_LOG(gettid(), "call()");
 
-    MPI_Comm_size(MPI_COMM_WORLD, &n_servers);
     setup_signal_handlers();
-    backend->handshake_servers();
-
-    create_dir(getpid(), get_capio_dir());
 
     init_server();
-
 
     auto str = std::unique_ptr<char[]>(new char[CAPIO_REQ_MAX_SIZE]);
     while (true) {
@@ -149,8 +81,6 @@ int parseCLI(int argc, char **argv) {
                                         CAPIO_SERVER_ARG_PARSER_CONFIG_OPT_HELP, {'c', "config"});
     args::Flag noConfigFile(arguments, "no-config",
                             CAPIO_SERVER_ARG_PARSER_CONFIG_NO_CONF_FILE_HELP, {"no-config"});
-    args::ValueFlag<std::string> backend_flag(
-        arguments, "backend", CAPIO_SERVER_ARG_PARSER_CONFIG_BACKEND_HELP, {'b', "backend"});
 
     args::Flag continueOnErrorFlag(arguments, "continue-on-error",
                                    CAPIO_SERVER_ARG_PARSER_CONFIG_NCONTINUE_ON_ERROR_HELP,
@@ -256,13 +186,6 @@ int parseCLI(int argc, char **argv) {
     }
 #endif
 
-    // Backend selection phase
-    std::string backend_name_str;
-    if (backend_flag) {
-        backend_name_str = args::get(backend_flag);
-    }
-    backend = select_backend(backend_name_str, argc, argv);
-
     std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "server initialization completed!" << std::endl
               << std::flush;
     return 0;
@@ -280,6 +203,5 @@ int main(int argc, char **argv) {
 
     capio_server();
 
-    delete backend;
     return 0;
 }

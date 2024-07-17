@@ -1,4 +1,0 @@
-#ifndef CAPIO_ENGINE_HPP
-#define CAPIO_ENGINE_HPP
-
-#endif // CAPIO_ENGINE_HPP

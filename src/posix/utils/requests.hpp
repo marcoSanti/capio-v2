@@ -43,6 +43,16 @@ void consent_to_proceed_request(const std::filesystem::path &path, const long ti
     bufs_response->at(tid)->read(&res);
 }
 
+inline void seek_request(const std::filesystem::path &path, const long offset, const int whence,
+                            const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, offset=%ld, tid=%ld)", fd, offset, tid);
+    char req[CAPIO_REQ_MAX_SIZE];
+    sprintf(req, "%04d %ld %s %ld %d", CAPIO_REQUEST_SEEK, tid, path.c_str(), offset, whence);
+    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+    off64_t res;
+    bufs_response->at(tid)->read(&res);
+}
+
 // non blocking
 inline void clone_request(const long parent_tid, const long child_tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(parent_tid=%ld, child_tid=%ld)", parent_tid,
@@ -62,7 +72,7 @@ inline void close_request(const std::filesystem::path &path, const long tid) {
 
 // block until server registers rename
 inline void rename_request(const long tid, const std::filesystem::path &old_path,
-                              const std::filesystem::path &newpath) {
+                           const std::filesystem::path &newpath) {
     START_LOG(capio_syscall(SYS_gettid), "call(tid=%ld, old_path=%s, new_path=%s)", tid,
               old_path.c_str(), newpath.c_str());
     char req[CAPIO_REQ_MAX_SIZE];
@@ -113,8 +123,7 @@ inline void mkdir_request(const std::filesystem::path &path, const long tid) {
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 
-
-//block until open is possible
+// block until open is possible
 inline void open_request(const int fd, const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, path=%s, tid=%ld)", fd, path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
@@ -124,8 +133,7 @@ inline void open_request(const int fd, const std::filesystem::path &path, const 
     bufs_response->at(tid)->read(&res);
 }
 
-
-//return amount of readable bytes
+// return amount of readable bytes
 inline off64_t read_request(const std::filesystem::path &path, const off64_t count,
                             const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, count=%ld, tid=%ld)", fd, count, tid);
@@ -139,7 +147,7 @@ inline off64_t read_request(const std::filesystem::path &path, const off64_t cou
     return res;
 }
 
-//non blocking
+// non blocking
 inline off64_t unlink_request(const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];

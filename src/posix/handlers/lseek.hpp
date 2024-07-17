@@ -13,8 +13,11 @@ int lseek_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long ar
 
     START_LOG(tid, "call(fd=%d, offset=%ld, whence=%d)", fd, offset, whence);
     if (exists_capio_fd(fd)) {
-        consent_to_proceed_request(get_capio_fd_path(fd), tid);
+        (get_capio_fd_path(fd), tid);
     }
+
+    seek_request(get_capio_fd_path(fd), offset, whence, tid);
+
     return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
 }
 

@@ -3,7 +3,6 @@
 
 #if defined(SYS_getdents) || defined(SYS_getdents64)
 
-#include "capio/dirent.hpp"
 
 
 // TODO: too similar to capio_read, refactoring needed

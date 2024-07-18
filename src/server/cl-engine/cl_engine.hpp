@@ -19,13 +19,11 @@ class ClEngine {
     static constexpr std::array<CSHandler_t, CAPIO_NR_REQUESTS> build_request_handlers_table() {
         std::array<CSHandler_t, CAPIO_NR_REQUESTS> _request_handlers{0};
 
-        _request_handlers[CAPIO_REQUEST_ACCESS]              = nullptr;
+        _request_handlers[CAPIO_REQUEST_CONSENT]             = consent_to_proceed_handler;
         _request_handlers[CAPIO_REQUEST_CLONE]               = nullptr;
         _request_handlers[CAPIO_REQUEST_CLOSE]               = nullptr;
         _request_handlers[CAPIO_REQUEST_CREATE]              = nullptr;
         _request_handlers[CAPIO_REQUEST_EXIT_GROUP]          = nullptr;
-        _request_handlers[CAPIO_REQUEST_GETDENTS]            = nullptr;
-        _request_handlers[CAPIO_REQUEST_GETDENTS64]          = nullptr;
         _request_handlers[CAPIO_REQUEST_HANDSHAKE_NAMED]     = handshake_named_handler;
         _request_handlers[CAPIO_REQUEST_HANDSHAKE_ANONYMOUS] = handshake_anonymous_handler;
         _request_handlers[CAPIO_REQUEST_MKDIR]               = nullptr;
@@ -35,7 +33,6 @@ class ClEngine {
         _request_handlers[CAPIO_REQUEST_RMDIR]               = nullptr;
         _request_handlers[CAPIO_REQUEST_SEEK]                = nullptr;
         _request_handlers[CAPIO_REQUEST_SEEK]                = nullptr;
-        _request_handlers[CAPIO_REQUEST_STAT]                = nullptr;
         _request_handlers[CAPIO_REQUEST_UNLINK]              = nullptr;
         _request_handlers[CAPIO_REQUEST_WRITE]               = nullptr;
 
@@ -67,9 +64,9 @@ class ClEngine {
     explicit ClEngine(const std::filesystem::path &json_path) {
         START_LOG(gettid(), "call(path=%s)", json_path.c_str());
 
-        client_manager   = new ClientManager();
-        capio_configuration        = JsonParser::parse(json_path);
-        request_handlers = build_request_handlers_table();
+        client_manager      = new ClientManager();
+        capio_configuration = JsonParser::parse(json_path);
+        request_handlers    = build_request_handlers_table();
 
         buf_requests = new CSBufRequest_t(SHM_COMM_CHAN_NAME, CAPIO_REQ_BUFF_CNT,
                                           CAPIO_REQ_MAX_SIZE, workflow_name);

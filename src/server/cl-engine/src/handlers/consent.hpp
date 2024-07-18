@@ -7,7 +7,7 @@
 This handler only checks if the client is allowed to continue
 */
 
-inline void consent_to_proceed_request(const char *const str) {
+inline void consent_to_proceed_handler(const char *const str) {
     int tid;
     char path[1024];
     sscanf(str, "%d %d %s", &tid, path);

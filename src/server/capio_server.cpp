@@ -21,6 +21,7 @@
 #include <vector>
 
 std::string workflow_name;
+char node_name[HOST_NAME_MAX];
 
 #include "utils/types.hpp"
 
@@ -34,6 +35,7 @@ CSDataBufferMap_t data_buffers;
 #include "utils/env.hpp"
 #include "utils/signals.hpp"
 
+#include "storage-engine/storage_engine.hpp"
 #include "cl-engine/cl_engine.hpp"
 
 std::string parseCLI(int argc, char **argv) {
@@ -170,6 +172,8 @@ std::string parseCLI(int argc, char **argv) {
 int main(int argc, char **argv) {
 
     std::cout << CAPIO_LOG_SERVER_BANNER;
+
+    gethostname(node_name, HOST_NAME_MAX);
 
     const std::string config_path = parseCLI(argc, argv);
 

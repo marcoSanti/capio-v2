@@ -1,7 +1,7 @@
 #ifndef CAPIO_ENGINE_HPP
 #define CAPIO_ENGINE_HPP
 
-class CapioFileLocations {
+class CapioCLConfiguration {
   private:
     std::unordered_map<std::string,                         // path name
                        std::tuple<std::vector<std::string>, // Vector for producers
@@ -184,4 +184,5 @@ class CapioFileLocations {
     inline auto consumers(const std::string &path) { return std::get<1>(_locations.at(path)); }
 };
 
+inline CapioCLConfiguration *capio_configuration;
 #endif // CAPIO_ENGINE_HPP

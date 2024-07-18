@@ -20,10 +20,10 @@ class ClEngine {
         std::array<CSHandler_t, CAPIO_NR_REQUESTS> _request_handlers{0};
 
         _request_handlers[CAPIO_REQUEST_CONSENT]             = consent_to_proceed_handler;
-        _request_handlers[CAPIO_REQUEST_CLONE]               = nullptr;
-        _request_handlers[CAPIO_REQUEST_CLOSE]               = nullptr;
-        _request_handlers[CAPIO_REQUEST_CREATE]              = nullptr;
-        _request_handlers[CAPIO_REQUEST_EXIT_GROUP]          = nullptr;
+        _request_handlers[CAPIO_REQUEST_CLONE]               = clone_handler;
+        _request_handlers[CAPIO_REQUEST_CLOSE]               = close_handler;
+        _request_handlers[CAPIO_REQUEST_CREATE]              = create_handler;
+        _request_handlers[CAPIO_REQUEST_EXIT_GROUP]          = exit_handler;
         _request_handlers[CAPIO_REQUEST_HANDSHAKE_NAMED]     = handshake_named_handler;
         _request_handlers[CAPIO_REQUEST_HANDSHAKE_ANONYMOUS] = handshake_anonymous_handler;
         _request_handlers[CAPIO_REQUEST_MKDIR]               = nullptr;

@@ -38,7 +38,7 @@ class JsonParser {
             ERR_EXIT("Error: workflow name is mandatory");
         }
         workflow_name = std::string(wf_name);
-        std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO
+        std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON
                   << "Parsing configuration for workflow: " << workflow_name << std::endl;
         LOG("Parsing configuration for workflow: %s", std::string(workflow_name).c_str());
 
@@ -51,7 +51,7 @@ class JsonParser {
                 ERR_EXIT("Error: app name is mandatory");
             }
 
-            std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "Parsing config for app " << app_name
+            std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON << "Parsing config for app " << app_name
                       << std::endl;
             LOG("Parsing config for app %s", std::string(app_name).c_str());
 
@@ -67,7 +67,7 @@ class JsonParser {
                     locations->addConsumer(file, appname);
                 }
 
-                std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO
+                std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON
                           << "Completed input_stream parsing for app: " << app_name << std::endl;
                 LOG("Completed input_stream parsing for app: %s", std::string(app_name).c_str());
             }
@@ -84,7 +84,7 @@ class JsonParser {
                     locations->newFile(file);
                     locations->addConsumer(file, appname);
                 }
-                std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO
+                std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON
                           << "Completed output_stream parsing for app: " << app_name << std::endl;
                 LOG("Completed output_stream parsing for app: %s", std::string(app_name).c_str());
             }
@@ -163,7 +163,7 @@ class JsonParser {
                     }
                     LOG("batch_size: %d", batch_size);
                     for (auto path : streaming_names) {
-                        std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO
+                        std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON
                                   << "Updating metadata for path:  " << path << std::endl;
                         if (path.is_relative()) {
                             path = (capio_dir / path).lexically_normal();
@@ -174,15 +174,17 @@ class JsonParser {
 
                         // TODO: check for globs
                         std::string commit(commit_rule), firerule(mode);
-
-                        locations->setDirectoryFileCount(path, n_files);
+                        if (n_files != -1) {
+                            locations->setDirectory(path);
+                            locations->setDirectoryFileCount(path, n_files);
+                        }
                         locations->setCommitRule(path, commit);
                         locations->setFireRule(path, firerule);
                         locations->setCommitedNumber(path, n_close);
                     }
                 }
 
-                std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO
+                std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON
                           << "completed parsing of streaming section for app: " << app_name
                           << std::endl;
                 LOG("completed parsing of streaming section for app: %s",
@@ -219,12 +221,12 @@ class JsonParser {
 
                 locations->setPermanent(name.data(), true);
             }
-            std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "Completed parsing of permanent files"
+            std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON << "Completed parsing of permanent files"
                       << std::endl;
             LOG("Completed parsing of permanent files");
         } // END PARSING PERMANENT FILES
 
-        std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "Completed parsing of io_graph"
+        std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON << "Completed parsing of io_graph"
                   << std::endl;
         LOG("Completed parsing of io_graph");
 
@@ -239,4 +241,4 @@ class JsonParser {
     }
 };
 
-#endif //JSON_PARSER_HPP
+#endif // JSON_PARSER_HPP

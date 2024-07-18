@@ -73,6 +73,9 @@ class ClEngine {
                                            CAPIO_REQ_MAX_SIZE, workflow_name);
         bufs_response = new CSBufResponse_t();
         locations->print();
+
+        std::cout << CAPIO_SERVER_CLI_LOG_SERVER
+                  << " CL-Engine initialization completed. ready to listen for incoming requests" << std::endl;
     }
 
     ~ClEngine() {

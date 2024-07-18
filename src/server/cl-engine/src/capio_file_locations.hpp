@@ -21,9 +21,19 @@ class CapioFileLocations {
     }
 
   public:
-    void print() {
+    void print() const {
         std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_JSON
                   << "Composition of expected CAPIO FS: " << std::endl
+                  << std::endl
+                  << "|============================================================================"
+                     "===============================================|"
+                  << std::endl
+                  << "|" << std::setw(124) << "|" << std::endl
+                  << "|     Parsed configuration file for workflow: \e[1;36m" << workflow_name
+                  << std::setw(83 - workflow_name.length()) << "\e[0m |" << std::endl
+                  << "|" << std::setw(124) << "|" << std::endl
+                  << "|============================================================================"
+                     "===============================================|"
                   << std::endl
                   << "|======|===================|===================|====================|========"
                      "============|============|===========|=========|"
@@ -173,6 +183,5 @@ class CapioFileLocations {
     // TODO: return vector
     inline auto consumers(const std::string &path) { return std::get<1>(_locations.at(path)); }
 };
-
 
 #endif // CAPIO_ENGINE_HPP

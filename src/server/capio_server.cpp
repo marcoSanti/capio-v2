@@ -183,6 +183,7 @@ int main(int argc, char **argv) {
 
     setup_signal_handlers();
 
+    storage_engine = new StorageEngine();
     cl_engine = new ClEngine(config_path);
     cl_engine->start();
 

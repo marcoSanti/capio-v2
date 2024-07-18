@@ -3,6 +3,7 @@
 
 #include <cl-engine/cl_engine.hpp>
 #include <csignal>
+#include <storage-engine/storage_engine.hpp>
 
 #ifdef CAPIO_COVERAGE
 extern "C" void __gcov_dump(void);
@@ -21,6 +22,8 @@ void sig_term_handler(int signum, siginfo_t *info, void *ptr) {
 
 
     // TODO: free all the memory used
+    delete cl_engine;
+    delete storage_engine;
 
     std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_WARNING << "shm cleanup completed" << std::endl;
 

@@ -53,8 +53,8 @@ class ClientManager {
      * @param offset
      * @return
      */
-    inline void reply_to_client(int tid, off64_t offset) {
-        START_LOG(gettid(), "call(tid=%d, offset=%ld)", tid, offset);
+    inline void reply_to_client(long tid, off64_t offset) {
+        START_LOG(gettid(), "call(tid=%ld, offset=%ld)", tid, offset);
 
         return bufs_response->at(tid)->write(&offset);
     }

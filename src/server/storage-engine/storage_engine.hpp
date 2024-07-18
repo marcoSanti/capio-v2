@@ -7,6 +7,7 @@
 class StorageEngine {
   private:
     std::unordered_map<std::filesystem::path, CapioFile *> *open_metadata_descriptors;
+    std::unordered_map<std::filesystem::path, std::vector<long> *> *pending_requests_on_file;
     std::mutex metadata_mutex;
 
     /**
@@ -20,9 +21,20 @@ class StorageEngine {
         return std::filesystem::exists(check);
     }
 
+    void unlock_awaiting_threads_for_commit(const std::filesystem::path &path) const {
+        if (open_metadata_descriptors->at(path)->is_committed()) {
+            auto queue = pending_requests_on_file->at(path);
+            for (long tid : *queue) {
+                client_manager->reply_to_client(tid, 1);
+            }
+        }
+    }
+
   public:
     StorageEngine() {
         open_metadata_descriptors = new std::unordered_map<std::filesystem::path, CapioFile *>();
+        pending_requests_on_file =
+            new std::unordered_map<std::filesystem::path, std::vector<long> *>;
     }
 
     ~StorageEngine() { delete open_metadata_descriptors; }
@@ -45,15 +57,19 @@ class StorageEngine {
 
     auto get_metadata(std::filesystem::path &filename) {
         std::lock_guard<std::mutex> lg(metadata_mutex);
-
-        return open_metadata_descriptors->at(filename)->get_metadata();
+        auto metadata = open_metadata_descriptors->at(filename)->get_metadata();
+        unlock_awaiting_threads_for_commit(
+            filename); // if committed unlock threads waiting to continue
+        return metadata;
     }
 
     void update_metadata(std::filesystem::path &filename, long filesize, long n_close,
                          bool committed) {
         std::lock_guard<std::mutex> lg(metadata_mutex);
-
         open_metadata_descriptors->at(filename)->update_metadata(filesize, n_close, committed);
+        if (committed) {
+            unlock_awaiting_threads_for_commit(filename);
+        }
     }
 
     void update_size(std::filesystem::path &filename, long size) {
@@ -70,11 +86,21 @@ class StorageEngine {
 
     void set_committed(std::filesystem::path &filename) const {
         open_metadata_descriptors->at(filename)->set_committed();
+        unlock_awaiting_threads_for_commit(filename);
     }
 
     bool is_committed(std::filesystem::path &filename) const {
         return open_metadata_descriptors->at(filename)->is_committed();
     }
+
+    void add_thread_awaiting_for_commit(const std::filesystem::path &filename, long tid) const {
+        if (pending_requests_on_file->find(filename) == pending_requests_on_file->end()) {
+            pending_requests_on_file->emplace(filename, new std::vector<long>);
+        }
+        pending_requests_on_file->at(filename)->emplace_back(tid);
+    }
 };
+
+StorageEngine *storage_engine;
 
 #endif // STORAGE_ENGINE_HPP

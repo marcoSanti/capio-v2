@@ -136,9 +136,19 @@ class CapioCLConfiguration {
         std::get<2>(_locations.at(path)) = commit_rule;
     }
 
+    inline auto getCommitRule(const std::string &path) {
+        this->newFile(path);
+        return std::get<2>(_locations.at(path));
+    }
+
     inline void setFireRule(const std::string &path, const std::string &fire_rule) {
         this->newFile(path);
         std::get<3>(_locations.at(path)) = fire_rule;
+    }
+
+    inline auto getFireRule(const std::string &path) {
+        this->newFile(path);
+        return std::get<3>(_locations.at(path));
     }
 
     inline void setPermanent(const std::string &path, bool value) {

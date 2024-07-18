@@ -4,8 +4,6 @@
 #include <string>
 
 #include "capio/constants.hpp"
-
-#include "requests.hpp"
 #include "types.hpp"
 
 

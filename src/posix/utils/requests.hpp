@@ -7,8 +7,8 @@
 #include "filesystem.hpp"
 #include "types.hpp"
 
-CircularBuffer<char> *buf_requests;
-CPBufResponse_t *bufs_response;
+inline CircularBuffer<char> *buf_requests;
+inline CPBufResponse_t *bufs_response;
 
 /**
  * Initialize request and response buffers
@@ -27,14 +27,13 @@ inline void init_client() {
  * @return
  */
 inline void register_listener(long tid) {
-    // TODO: replace numbers with constexpr
     auto *p_buf_response = new CircularBuffer<off_t>(SHM_COMM_CHAN_NAME_RESP + std::to_string(tid),
                                                      CAPIO_REQ_BUFF_CNT, sizeof(off_t));
     bufs_response->insert(std::make_pair(tid, p_buf_response));
 }
 
 // Block until server allows for proceeding to a generic request
-void consent_to_proceed_request(const std::filesystem::path &path, const long tid) {
+inline void consent_to_proceed_request(const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s", CAPIO_REQUEST_CONSENT, tid, path.c_str());
@@ -44,8 +43,9 @@ void consent_to_proceed_request(const std::filesystem::path &path, const long ti
 }
 
 inline void seek_request(const std::filesystem::path &path, const long offset, const int whence,
-                            const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, offset=%ld, tid=%ld)", fd, offset, tid);
+                         const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, offset=%ld, tid=%ld)", path.c_str(), offset,
+              tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s %ld %d", CAPIO_REQUEST_SEEK, tid, path.c_str(), offset, whence);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
@@ -136,9 +136,9 @@ inline void open_request(const int fd, const std::filesystem::path &path, const 
 // return amount of readable bytes
 inline off64_t read_request(const std::filesystem::path &path, const off64_t count,
                             const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, count=%ld, tid=%ld)", fd, count, tid);
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)", path, count, tid);
     char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %s %d %ld", CAPIO_REQUEST_READ, tid, path.c_str(), count);
+    sprintf(req, "%04d %s %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, count);
     LOG("Sending read request %s", req);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;
@@ -148,7 +148,7 @@ inline off64_t read_request(const std::filesystem::path &path, const off64_t cou
 }
 
 // non blocking
-inline off64_t unlink_request(const std::filesystem::path &path, const long tid) {
+inline void unlink_request(const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s", CAPIO_REQUEST_UNLINK, tid, path.c_str());
@@ -156,7 +156,7 @@ inline off64_t unlink_request(const std::filesystem::path &path, const long tid)
 }
 
 // non blocking
-inline off64_t rmdir_request(const std::filesystem::path &dir_path, long tid) {
+inline void rmdir_request(const std::filesystem::path &dir_path, long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(dir_path=%s, tid=%ld)", dir_path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %s %ld", CAPIO_REQUEST_RMDIR, dir_path.c_str(), tid);
@@ -165,7 +165,8 @@ inline off64_t rmdir_request(const std::filesystem::path &dir_path, long tid) {
 
 // non blocking as write is not in the pre port of capio semantics
 inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, count=%ld, tid=%ld)", fd, count, tid);
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)", path.c_str(), count,
+              tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s %ld", CAPIO_REQUEST_WRITE, tid, path.c_str(), count);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);

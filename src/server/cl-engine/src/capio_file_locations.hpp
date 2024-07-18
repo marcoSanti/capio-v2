@@ -38,7 +38,8 @@ class CapioFileLocations {
             std::string name_trunc = truncate_last_n(itm.first, 12);
             auto kind              = std::get<5>(itm.second) ? "F" : "D";
 
-            std::cout << "|   " << kind << "  " << "| " << name_trunc << std::setfill(' ')
+            std::cout << "|   " << kind << "  "
+                      << "| " << name_trunc << std::setfill(' ')
                       << std::setw(20 - name_trunc.length()) << "| ";
 
             auto producers = std::get<0>(itm.second);
@@ -109,44 +110,58 @@ class CapioFileLocations {
     }
 
     inline void addProducer(const std::string &path, std::string &producer) {
+        this->newFile(path);
         producer.erase(remove_if(producer.begin(), producer.end(), isspace), producer.end());
         std::get<0>(_locations.at(path)).emplace_back(producer);
     }
 
     inline void addConsumer(const std::string &path, std::string &consumer) {
+        this->newFile(path);
         consumer.erase(remove_if(consumer.begin(), consumer.end(), isspace), consumer.end());
         std::get<1>(_locations.at(path)).emplace_back(consumer);
     }
 
     inline void setCommitRule(const std::string &path, const std::string &commit_rule) {
+        this->newFile(path);
         std::get<2>(_locations.at(path)) = commit_rule;
     }
 
     inline void setFireRule(const std::string &path, const std::string &fire_rule) {
+        this->newFile(path);
         std::get<3>(_locations.at(path)) = fire_rule;
     }
 
     inline void setPermanent(const std::string &path, bool value) {
+        this->newFile(path);
         std::get<5>(_locations.at(path)) = value;
     }
 
     inline void setExclude(const std::string &path, bool value) {
+        this->newFile(path);
         std::get<4>(_locations.at(path)) = value;
     }
 
-    inline void setDirectory(const std::string &path) { std::get<5>(_locations.at(path)) = false; }
+    inline void setDirectory(const std::string &path) {
+        this->newFile(path);
+        std::get<5>(_locations.at(path)) = false;
+    }
 
     inline bool isDirectory(const std::string &path) { return !std::get<5>(_locations.at(path)); }
 
-    inline void setFile(const std::string &path) { std::get<5>(_locations.at(path)) = true; }
+    inline void setFile(const std::string &path) {
+        this->newFile(path);
+        std::get<5>(_locations.at(path)) = true;
+    }
 
     inline bool isFile(const std::string &path) { return std::get<5>(_locations.at(path)); }
 
     inline void setCommitedNumber(const std::string &path, int num) {
+        this->newFile(path);
         std::get<6>(_locations.at(path)) = num;
     }
 
     inline void setDirectoryFileCount(const std::string &path, long num) {
+        this->newFile(path);
         std::get<7>(_locations.at(path)) = num;
     }
 
@@ -157,34 +172,7 @@ class CapioFileLocations {
 
     // TODO: return vector
     inline auto consumers(const std::string &path) { return std::get<1>(_locations.at(path)); }
-
 };
 
-
-static constexpr std::array<CSHandler_t, CAPIO_NR_REQUESTS> build_request_handlers_table() {
-    std::array<CSHandler_t, CAPIO_NR_REQUESTS> _request_handlers{0};
-
-    _request_handlers[CAPIO_REQUEST_ACCESS]              = nullptr;
-    _request_handlers[CAPIO_REQUEST_CLONE]               = nullptr;
-    _request_handlers[CAPIO_REQUEST_CLOSE]               = nullptr;
-    _request_handlers[CAPIO_REQUEST_CREATE]              = nullptr;
-    _request_handlers[CAPIO_REQUEST_EXIT_GROUP]          = nullptr;
-    _request_handlers[CAPIO_REQUEST_GETDENTS]            = nullptr;
-    _request_handlers[CAPIO_REQUEST_GETDENTS64]          = nullptr;
-    _request_handlers[CAPIO_REQUEST_HANDSHAKE_NAMED]     = nullptr;
-    _request_handlers[CAPIO_REQUEST_HANDSHAKE_ANONYMOUS] = nullptr;
-    _request_handlers[CAPIO_REQUEST_MKDIR]               = nullptr;
-    _request_handlers[CAPIO_REQUEST_OPEN]                = nullptr;
-    _request_handlers[CAPIO_REQUEST_READ]                = nullptr;
-    _request_handlers[CAPIO_REQUEST_RENAME]              = nullptr;
-    _request_handlers[CAPIO_REQUEST_RMDIR]               = nullptr;
-    _request_handlers[CAPIO_REQUEST_SEEK]                = nullptr;
-    _request_handlers[CAPIO_REQUEST_SEEK]                = nullptr;
-    _request_handlers[CAPIO_REQUEST_STAT]                = nullptr;
-    _request_handlers[CAPIO_REQUEST_UNLINK]              = nullptr;
-    _request_handlers[CAPIO_REQUEST_WRITE]               = nullptr;
-
-    return _request_handlers;
-}
 
 #endif // CAPIO_ENGINE_HPP

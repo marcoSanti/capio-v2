@@ -32,38 +32,11 @@ CSDataBufferMap_t data_buffers;
 #include "capio/semaphore.hpp"
 #include "utils/common.hpp"
 #include "utils/env.hpp"
-#include "utils/requests.hpp"
-
 #include "utils/signals.hpp"
 
-#include "cl-engine/main.hpp"
+#include "cl-engine/cl_engine.hpp"
 
-[[noreturn]] void capio_server() {
-    static const std::array<CSHandler_t, CAPIO_NR_REQUESTS> request_handlers =
-        build_request_handlers_table();
-
-    START_LOG(gettid(), "call()");
-
-    setup_signal_handlers();
-
-    init_server();
-
-    auto str = std::unique_ptr<char[]>(new char[CAPIO_REQ_MAX_SIZE]);
-    while (true) {
-        LOG(CAPIO_LOG_SERVER_REQUEST_START);
-        int code = read_next_request(str.get());
-        if (code < 0 || code > CAPIO_NR_REQUESTS) {
-            std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_ERROR << "Received invalid code: " << code
-                      << std::endl;
-
-            ERR_EXIT("Error: received invalid request code");
-        }
-        request_handlers[code](str.get());
-        LOG(CAPIO_LOG_SERVER_REQUEST_END);
-    }
-}
-
-int parseCLI(int argc, char **argv) {
+std::string parseCLI(int argc, char **argv) {
     Logger *log;
 
     args::ArgumentParser parser(CAPIO_SERVER_ARG_PARSER_PRE, CAPIO_SERVER_ARG_PARSER_EPILOGUE);
@@ -146,11 +119,10 @@ int parseCLI(int argc, char **argv) {
 #endif
 
     if (config) {
-        std::string token                      = args::get(config);
-        const std::filesystem::path &capio_dir = get_capio_dir();
+        std::string token = args::get(config);
         std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "parsing config file: " << token
                   << std::endl;
-        parse_conf_file(token, capio_dir);
+        // TODO: pass config file path
     } else if (noConfigFile) {
         workflow_name = std::string_view(get_capio_workflow_name());
         std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_WARNING << "skipping config file parsing."
@@ -188,20 +160,27 @@ int parseCLI(int argc, char **argv) {
 
     std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "server initialization completed!" << std::endl
               << std::flush;
-    return 0;
+
+    if (config) {
+        return std::string(args::get(config).data());
+    }
+    return "";
 }
 
 int main(int argc, char **argv) {
 
     std::cout << CAPIO_LOG_SERVER_BANNER;
 
-    parseCLI(argc, argv);
+    const std::string config_path = parseCLI(argc, argv);
 
     START_LOG(gettid(), "call()");
 
     shm_canary = new CapioShmCanary(workflow_name);
 
-    capio_server();
+    setup_signal_handlers();
+
+    cl_engine = new ClEngine(config_path);
+    cl_engine->start();
 
     return 0;
 }

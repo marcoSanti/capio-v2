@@ -1,6 +1,7 @@
 #ifndef CAPIO_SERVER_HANDLERS_SIGNALS_HPP
 #define CAPIO_SERVER_HANDLERS_SIGNALS_HPP
 
+#include <cl-engine/cl_engine.hpp>
 #include <csignal>
 
 #ifdef CAPIO_COVERAGE
@@ -39,8 +40,8 @@ void sig_term_handler(int signum, siginfo_t *info, void *ptr) {
     __gcov_dump();
 #endif
 
-    destroy_server();
 
+    delete cl_engine;
     delete shm_canary;
 
     std::cout << CAPIO_LOG_SERVER_CLI_LEVEL_INFO << "shutdown completed" << std::endl;

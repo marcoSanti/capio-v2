@@ -165,11 +165,11 @@ inline void rmdir_request(const std::filesystem::path &dir_path, long tid) {
 }
 
 // non blocking as write is not in the pre port of capio semantics
-inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid) {
+inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid, const long fd) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)", path.c_str(), count,
               tid);
     char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %ld %s %ld", CAPIO_REQUEST_WRITE, tid, path.c_str(), count);
+    sprintf(req, "%04d %ld %ld %s %ld", CAPIO_REQUEST_WRITE, tid, fd, path.c_str(), count);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 

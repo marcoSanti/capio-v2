@@ -30,8 +30,6 @@ class ClientManager {
                                       CAPIO_REQ_BUFF_CNT, sizeof(off_t), workflow_name);
         bufs_response->insert(std::make_pair(tid, p_buf_response));
         app_names->emplace(tid, app_name);
-        std::cout << CAPIO_SERVER_CLI_LOG_SERVER << "Handshaked a new client: <" << tid << ","
-                  << app_name << ">" << std::endl;
     }
 
     /**

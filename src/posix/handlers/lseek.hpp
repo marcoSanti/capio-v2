@@ -16,7 +16,7 @@ int lseek_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long ar
         (get_capio_fd_path(fd), tid);
     }
 
-    seek_request(get_capio_fd_path(fd), offset, whence, tid);
+    seek_request(get_capio_fd_path(fd), offset, whence, tid, fd);
 
     return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
 }

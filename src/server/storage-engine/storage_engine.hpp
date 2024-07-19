@@ -205,9 +205,23 @@ class StorageEngine {
     }
 
     // TODO: handle seeks
-    void update_offset(long tid, long fd, long read_size) const {
-        file_descriptors_offsets->at(tid)->at(fd) =
-            file_descriptors_offsets->at(tid)->at(fd) + read_size;
+    void update_offset(long tid, long fd, long read_size, std::string path, int whence = -1) {
+        START_LOG(gettid(), "call()");
+        if (whence == -1) {
+            file_descriptors_offsets->at(tid)->at(fd) =
+                file_descriptors_offsets->at(tid)->at(fd) + read_size;
+            return;
+        }
+        LOG("handling seek");
+        //if i get here I am handling a seek
+
+        if (whence == SEEK_SET) {
+            file_descriptors_offsets->at(tid)->at(fd) = 0;
+        } else if (whence == SEEK_CUR) {
+            file_descriptors_offsets->at(tid)->at(fd) = read_size;
+        } else if (whence == SEEK_END) {
+            file_descriptors_offsets->at(tid)->at(fd) = std::filesystem::file_size(path);
+        }
     }
 
     [[nodiscard]] long offset_of(long tid, long fd) const {

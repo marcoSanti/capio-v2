@@ -43,11 +43,12 @@ inline void consent_to_proceed_request(const std::filesystem::path &path, const 
 }
 
 inline void seek_request(const std::filesystem::path &path, const long offset, const int whence,
-                         const long tid) {
+                         const long tid, int fd) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, offset=%ld, tid=%ld)", path.c_str(), offset,
               tid);
     char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %ld %s %ld %d", CAPIO_REQUEST_SEEK, tid, path.c_str(), offset, whence);
+    sprintf(req, "%04d %ld %s %ld %d %d", CAPIO_REQUEST_SEEK, tid, path.c_str(), offset, fd,
+            whence);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;
     bufs_response->at(tid)->read(&res);
@@ -165,7 +166,8 @@ inline void rmdir_request(const std::filesystem::path &dir_path, long tid) {
 }
 
 // non blocking as write is not in the pre port of capio semantics
-inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid, const long fd) {
+inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid,
+                          const long fd) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)", path.c_str(), count,
               tid);
     char req[CAPIO_REQ_MAX_SIZE];

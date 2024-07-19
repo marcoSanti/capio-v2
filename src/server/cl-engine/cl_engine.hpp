@@ -30,11 +30,10 @@ class ClEngine {
         _request_handlers[CAPIO_REQUEST_OPEN]                = nullptr;
         _request_handlers[CAPIO_REQUEST_READ]                = nullptr;
         _request_handlers[CAPIO_REQUEST_RENAME]              = nullptr;
-        _request_handlers[CAPIO_REQUEST_RMDIR]               = nullptr;
-        _request_handlers[CAPIO_REQUEST_SEEK]                = nullptr;
         _request_handlers[CAPIO_REQUEST_SEEK]                = nullptr;
         _request_handlers[CAPIO_REQUEST_UNLINK]              = nullptr;
         _request_handlers[CAPIO_REQUEST_WRITE]               = nullptr;
+        _request_handlers[CAPIO_REQUEST_RMDIR]               = nullptr;
 
         return _request_handlers;
     }

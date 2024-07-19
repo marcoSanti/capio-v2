@@ -134,12 +134,12 @@ inline void open_request(const int fd, const std::filesystem::path &path, const 
 }
 
 // return amount of readable bytes
-inline off64_t read_request(const std::filesystem::path &path, const off64_t count,
-                            const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)", path.c_str(), count,
-              tid);
+inline off64_t read_request(const std::filesystem::path &path, const off64_t count, const long tid,
+                            const long fd) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld, fd=%ld)", path.c_str(),
+              count, tid, fd);
     char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %s %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, count);
+    sprintf(req, "%04d %s %ld %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, fd, count);
     LOG("Sending read request %s", req);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;

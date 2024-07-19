@@ -4,6 +4,8 @@
 
 #include "src/capio_file.hpp"
 
+// TODO: SPLITTARE ASAP LA GESTIONE DELLE RICHIESTE FUTURE IN UNA CLASSE DEDICATA
+
 class StorageEngine {
   private:
     // path -> CapioFile (only for metadata)
@@ -15,9 +17,16 @@ class StorageEngine {
     // path -> [tids waiting for creation of path]
     std::unordered_map<std::string, std::vector<long> *> *pending_requests_on_creation;
 
+    // [path, tid, fd] -> read size request. used to store the pending requests to read
+    std::unordered_map<std::string, std::unordered_map<long, std::unordered_map<long, long> *> *>
+        *pending_requests_on_available_data;
+
     // tid, path  -> number of open on file (used to know opened and how many times a file has been
     // open by a thread)
     std::unordered_map<long, std::unordered_map<std::string, long> *> *threads_opened_files;
+
+    // [tid, file_descriptor] -> offset
+    std::unordered_map<long, std::unordered_map<long, long> *> *file_descriptors_offsets;
 
     std::mutex metadata_mutex;
 
@@ -57,6 +66,11 @@ class StorageEngine {
         pending_requests_on_creation = new std::unordered_map<std::string, std::vector<long> *>;
         threads_opened_files =
             new std::unordered_map<long, std::unordered_map<std::string, long> *>;
+
+        file_descriptors_offsets = new std::unordered_map<long, std::unordered_map<long, long> *>;
+        pending_requests_on_available_data =
+            new std::unordered_map<std::string,
+                                   std::unordered_map<long, std::unordered_map<long, long> *> *>;
     }
 
     ~StorageEngine() {
@@ -64,6 +78,8 @@ class StorageEngine {
         delete pending_requests_on_creation;
         delete pending_requests_on_file;
         delete threads_opened_files;
+        delete file_descriptors_offsets;
+        delete pending_requests_on_available_data;
     }
 
     void create_capio_file(std::filesystem::path filename, long tid) {
@@ -172,6 +188,56 @@ class StorageEngine {
 
     static bool exists_file(const std::filesystem::path &path) {
         return std::filesystem::exists(path);
+    }
+
+    auto size(std::filesystem::path path, long tid, long fd) {
+        // TODO: fare meglio con i metadati, ma per ora mi accontento di questo
+        // TODO: serve anche tenere in considerazione gli offset dei files
+        return std::get<0>(get_metadata(path));
+    }
+
+    void register_tid_offset(int tid, int fd) {
+        if (file_descriptors_offsets->find(tid) == file_descriptors_offsets->end()) {
+            file_descriptors_offsets->emplace(tid, new std::unordered_map<long, long>);
+        }
+
+        file_descriptors_offsets->at(tid)->emplace(fd, 0);
+    }
+
+    // TODO: handle seeks
+    void update_offset(long tid, long fd, long read_size) const {
+        file_descriptors_offsets->at(tid)->at(fd) =
+            file_descriptors_offsets->at(tid)->at(fd) + read_size;
+    }
+
+    [[nodiscard]] long offset_of(long tid, long fd) const {
+
+        auto process_offset = file_descriptors_offsets->find(tid);
+        if (process_offset == file_descriptors_offsets->end()) {
+            return 0;
+        }
+
+        auto fd_offset = process_offset->second->find(fd);
+
+        return fd_offset != process_offset->second->end() ? fd_offset->second : 0;
+    }
+
+    void add_thread_awaiting_for_data(std::string path, long tid, long fd, long read_size) {
+        // [path, tid, fd] -> read size request. used to store the pending requests to read
+
+        if (pending_requests_on_available_data->find(path) ==
+            pending_requests_on_available_data->end()) {
+            pending_requests_on_available_data->emplace(
+                path, new std::unordered_map<long, std::unordered_map<long, long> *>);
+        }
+
+        auto filename_map = pending_requests_on_available_data->at(path);
+
+        if (filename_map->find(tid) == filename_map->end()) {
+            filename_map->emplace(tid, new std::unordered_map<long, long>);
+        }
+
+        filename_map->at(tid)->emplace(fd, read_size);
     }
 };
 

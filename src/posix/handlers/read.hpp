@@ -12,7 +12,7 @@ inline off64_t capio_read(int fd, void *buffer, off64_t count, long tid) {
             ERR_EXIT("CAPIO does not support read bigger than SSIZE_MAX yet");
         }
 
-        read_request(get_capio_fd_path(fd), count, tid);
+        read_request(get_capio_fd_path(fd), count, tid, fd);
     }
     return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
 }

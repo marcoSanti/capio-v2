@@ -7,6 +7,7 @@ inline void open_handler(const char *const str) {
     START_LOG(gettid(), "call(tid=%d, fd=%d, path=%s", tid, fd, path);
 
     if (StorageEngine::exists_file(path)) {
+        storage_engine->register_tid_offset(tid, fd);
         LOG("File exists on filesystem. returning");
         client_manager->reply_to_client(tid, 1);
     } else {

@@ -12,6 +12,9 @@ class StorageEngine {
     // path -> [tids waiting for response on path]
     std::unordered_map<std::string, std::vector<long> *> *pending_requests_on_file;
 
+    // path -> [tids waiting for creation of path]
+    std::unordered_map<std::string, std::vector<long> *> *pending_requests_on_creation;
+
     // tid, path  -> number of open on file (used to know opened and how many times a file has been
     // open by a thread)
     std::unordered_map<long, std::unordered_map<std::string, long> *> *threads_opened_files;
@@ -38,15 +41,30 @@ class StorageEngine {
         }
     }
 
+    void unlock_awaiting_threads_for_creation(const std::filesystem::path &path) const {
+        if (pending_requests_on_creation->find(path) != pending_requests_on_creation->end()) {
+            auto queue = pending_requests_on_creation->at(path);
+            for (long tid : *queue) {
+                client_manager->reply_to_client(tid, 1);
+            }
+        }
+    }
+
   public:
     StorageEngine() {
-        open_metadata_descriptors = new std::unordered_map<std::string, CapioFile *>;
-        pending_requests_on_file  = new std::unordered_map<std::string, std::vector<long> *>;
+        open_metadata_descriptors    = new std::unordered_map<std::string, CapioFile *>;
+        pending_requests_on_file     = new std::unordered_map<std::string, std::vector<long> *>;
+        pending_requests_on_creation = new std::unordered_map<std::string, std::vector<long> *>;
         threads_opened_files =
             new std::unordered_map<long, std::unordered_map<std::string, long> *>;
     }
 
-    ~StorageEngine() { delete open_metadata_descriptors; }
+    ~StorageEngine() {
+        delete open_metadata_descriptors;
+        delete pending_requests_on_creation;
+        delete pending_requests_on_file;
+        delete threads_opened_files;
+    }
 
     void create_capio_file(std::filesystem::path filename, long tid) {
         std::lock_guard<std::mutex> lg(metadata_mutex);
@@ -65,6 +83,8 @@ class StorageEngine {
             threads_opened_files->at(tid)->at(filename) =
                 threads_opened_files->at(tid)->at(filename) + 1;
         }
+
+        unlock_awaiting_threads_for_creation(filename);
     }
 
     void deleteFile(std::filesystem::path path) {
@@ -122,17 +142,36 @@ class StorageEngine {
         pending_requests_on_file->at(filename)->emplace_back(tid);
     }
 
+    void add_thread_awaiting_for_creation(const std::filesystem::path &filename, long tid) const {
+        if (pending_requests_on_creation->find(filename) == pending_requests_on_creation->end()) {
+            pending_requests_on_creation->emplace(filename, new std::vector<long>);
+        }
+        pending_requests_on_creation->at(filename)->emplace_back(tid);
+    }
+
     void close_all_files(int tid) {
+
+        if (threads_opened_files->find(tid) == threads_opened_files->end()) {
+            return;
+        }
+
         auto map = threads_opened_files->at(tid);
 
         for (auto entry : *map) {
             std::filesystem::path filename(entry.first);
+            if (filename == get_capio_dir() || !capio_configuration->file_to_be_handled(filename)) {
+                continue;
+            }
             long opens = entry.second;
             update_n_close(filename, opens);
-            // TODO: check if is committed
+            // TODO: check if is committed and then update commit
         }
 
         threads_opened_files->erase(threads_opened_files->find(tid));
+    }
+
+    static bool exists_file(const std::filesystem::path &path) {
+        return std::filesystem::exists(path);
     }
 };
 

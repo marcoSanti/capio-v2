@@ -7,5 +7,6 @@
 #include "handlers/create.hpp"
 #include "handlers/exit.hpp"
 #include "handlers/handshake.hpp"
+#include "handlers/open.hpp"
 
 #endif // HANDLERS_HPP

@@ -16,4 +16,4 @@ void handshake_named_handler(const char *const str) {
     client_manager->register_new_client(tid, app_name);
 }
 
-#endif //HANDSHAKE_HPP
+#endif // HANDSHAKE_HPP

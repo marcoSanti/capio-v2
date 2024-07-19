@@ -1,7 +1,7 @@
 #ifndef DISTRIBUTEDSEMAPHORE_HPP
 #define DISTRIBUTEDSEMAPHORE_HPP
 class DistributedSemaphore {
-private:
+  private:
     std::string name;
     struct timespec sleep {};
     bool locked;
@@ -33,7 +33,7 @@ private:
         LOG("Unlocked %s", name.c_str());
     }
 
-public:
+  public:
     DistributedSemaphore(std::string locking, int sleep_time)
         : name(locking), locked(false), fp(-1) {
         START_LOG(gettid(), "call(locking=%s, sleep_time=%ld)", name.c_str(), sleep_time);
@@ -50,4 +50,3 @@ public:
     }
 };
 #endif // DISTRIBUTEDSEMAPHORE_HPP
-

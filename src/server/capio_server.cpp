@@ -35,8 +35,8 @@ CSDataBufferMap_t data_buffers;
 #include "utils/env.hpp"
 #include "utils/signals.hpp"
 
-#include "storage-engine/storage_engine.hpp"
 #include "cl-engine/cl_engine.hpp"
+#include "storage-engine/storage_engine.hpp"
 
 std::string parseCLI(int argc, char **argv) {
     Logger *log;
@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
     setup_signal_handlers();
 
     storage_engine = new StorageEngine();
-    cl_engine = new ClEngine(config_path);
+    cl_engine      = new ClEngine(config_path);
     cl_engine->start();
 
     return 0;

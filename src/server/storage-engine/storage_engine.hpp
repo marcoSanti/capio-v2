@@ -7,14 +7,14 @@
 class StorageEngine {
   private:
     // path -> CapioFile (only for metadata)
-    std::unordered_map<std::filesystem::path, CapioFile *> *open_metadata_descriptors;
+    std::unordered_map<std::string, CapioFile *> *open_metadata_descriptors;
 
     // path -> [tids waiting for response on path]
-    std::unordered_map<std::filesystem::path, std::vector<long> *> *pending_requests_on_file;
+    std::unordered_map<std::string, std::vector<long> *> *pending_requests_on_file;
 
     // tid, path  -> number of open on file (used to know opened and how many times a file has been
     // open by a thread)
-    std::unordered_map<long, std::unordered_map<std::filesystem::path, long> *>
+    std::unordered_map<long, std::unordered_map<std::string, long> *>
         *threads_opened_files;
 
     std::mutex metadata_mutex;
@@ -41,11 +41,11 @@ class StorageEngine {
 
   public:
     StorageEngine() {
-        open_metadata_descriptors = new std::unordered_map<std::filesystem::path, CapioFile *>;
+        open_metadata_descriptors = new std::unordered_map<std::string, CapioFile *>;
         pending_requests_on_file =
-            new std::unordered_map<std::filesystem::path, std::vector<long> *>;
+            new std::unordered_map<std::string, std::vector<long> *>;
         threads_opened_files =
-            new std::unordered_map<long, std::unordered_map<std::filesystem::path, long> *>;
+            new std::unordered_map<long, std::unordered_map<std::string, long> *>;
     }
 
     ~StorageEngine() { delete open_metadata_descriptors; }
@@ -58,7 +58,7 @@ class StorageEngine {
 
         // register a new open on a file
         if (threads_opened_files->find(tid) == threads_opened_files->end()) {
-            threads_opened_files->emplace(tid, new std::unordered_map<std::filesystem::path, long>);
+            threads_opened_files->emplace(tid, new std::unordered_map<std::string, long>);
         }
 
         if (threads_opened_files->at(tid)->find(filename) == threads_opened_files->at(tid)->end()) {

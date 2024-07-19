@@ -14,8 +14,7 @@ class StorageEngine {
 
     // tid, path  -> number of open on file (used to know opened and how many times a file has been
     // open by a thread)
-    std::unordered_map<long, std::unordered_map<std::string, long> *>
-        *threads_opened_files;
+    std::unordered_map<long, std::unordered_map<std::string, long> *> *threads_opened_files;
 
     std::mutex metadata_mutex;
 
@@ -42,8 +41,7 @@ class StorageEngine {
   public:
     StorageEngine() {
         open_metadata_descriptors = new std::unordered_map<std::string, CapioFile *>;
-        pending_requests_on_file =
-            new std::unordered_map<std::string, std::vector<long> *>;
+        pending_requests_on_file  = new std::unordered_map<std::string, std::vector<long> *>;
         threads_opened_files =
             new std::unordered_map<long, std::unordered_map<std::string, long> *>;
     }
@@ -112,7 +110,8 @@ class StorageEngine {
         unlock_awaiting_threads_for_commit(filename);
     }
 
-    bool is_committed(std::filesystem::path &filename) const {
+    bool is_committed(std::filesystem::path &filename, long tid) {
+        this->create_capio_file(filename, tid);
         return open_metadata_descriptors->at(filename)->is_committed();
     }
 

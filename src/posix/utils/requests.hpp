@@ -55,15 +55,6 @@ inline void seek_request(const std::filesystem::path &path, const long offset, c
 }
 
 // non blocking
-inline void clone_request(const long parent_tid, const long child_tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(parent_tid=%ld, child_tid=%ld)", parent_tid,
-              child_tid);
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d  %ld %ld", CAPIO_REQUEST_CLONE, parent_tid, child_tid);
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
-}
-
-// non blocking
 inline void close_request(const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
@@ -71,17 +62,6 @@ inline void close_request(const std::filesystem::path &path, const long tid) {
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 
-// block until server registers rename
-inline void rename_request(const long tid, const std::filesystem::path &old_path,
-                           const std::filesystem::path &newpath) {
-    START_LOG(capio_syscall(SYS_gettid), "call(tid=%ld, old_path=%s, new_path=%s)", tid,
-              old_path.c_str(), newpath.c_str());
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %s %s %ld", CAPIO_REQUEST_RENAME, old_path.c_str(), newpath.c_str(), tid);
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
-    off64_t res;
-    bufs_response->at(tid)->read(&res);
-}
 
 // non blocking
 inline void create_request(const int fd, const std::filesystem::path &path, const long tid) {
@@ -116,14 +96,6 @@ inline void handshake_named_request(const long tid, const long pid, const std::s
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 
-// non blocking
-inline void mkdir_request(const std::filesystem::path &path, const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %ld %s", CAPIO_REQUEST_MKDIR, tid, path.c_str());
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
-}
-
 // block until open is possible
 inline void open_request(const int fd, const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, path=%s, tid=%ld)", fd, path.c_str(), tid);
@@ -147,22 +119,6 @@ inline off64_t read_request(const std::filesystem::path &path, const off64_t cou
     bufs_response->at(tid)->read(&res);
     LOG("Response to request is %ld", res);
     return res;
-}
-
-// non blocking
-inline void unlink_request(const std::filesystem::path &path, const long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %ld %s", CAPIO_REQUEST_UNLINK, tid, path.c_str());
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
-}
-
-// non blocking
-inline void rmdir_request(const std::filesystem::path &dir_path, long tid) {
-    START_LOG(capio_syscall(SYS_gettid), "call(dir_path=%s, tid=%ld)", dir_path.c_str(), tid);
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %s %ld", CAPIO_REQUEST_RMDIR, dir_path.c_str(), tid);
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 
 // non blocking as write is not in the pre port of capio semantics

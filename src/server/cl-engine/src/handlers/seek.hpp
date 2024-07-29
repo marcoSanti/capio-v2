@@ -13,7 +13,7 @@ inline void seek_handler(const char *const str) {
         return;
     }
 
-    storage_engine->update_offset(tid, fd, offset, filename, whence);
+
     //TODO: HANDLE CORECTLY SEEKS AS NOW CAPIO-CL LANGUAGE IS NOT ENFORCES
     client_manager->reply_to_client(tid, 1);
 }

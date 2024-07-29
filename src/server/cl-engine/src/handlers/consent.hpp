@@ -2,7 +2,7 @@
 #define CONSENT_HPP
 
 #include <cl-engine/cl_engine.hpp>
-#include <storage-engine/storage_engine.hpp>
+
 
 /*
 This handler only checks if the client is allowed to continue
@@ -30,14 +30,6 @@ inline void consent_to_proceed_handler(const char *const str) {
         return;
     }
 
-    if (storage_engine->is_committed(path_fs, tid) ||
-        capio_configuration->getFireRule(path_fs) == CAPIO_FILE_MODE_NO_UPDATE) {
-        LOG("file is committed or streaming is possible. unlocking client thread");
-        client_manager->reply_to_client(tid, 1);
-    } else {
-        LOG("Client thread needs to wait. required to wait");
-        storage_engine->add_thread_awaiting_for_commit(path, tid);
-    }
 }
 
 #endif // CONSENT_HPP

@@ -24,12 +24,7 @@ inline void read_handler(const char *const str) {
         return;
     }
 
-    if (storage_engine->size(path_fs, tid, fd) + storage_engine->offset_of(tid, fd) >= read_size) {
-        storage_engine->update_offset(tid, fd, read_size, path);
-        client_manager->reply_to_client(tid, 1);
-    } else {
-        storage_engine->add_thread_awaiting_for_data(path_fs, tid,fd, read_size);
-    }
+
 }
 
 #endif // READ_HPP

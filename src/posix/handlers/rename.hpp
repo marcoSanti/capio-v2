@@ -22,10 +22,15 @@ int rename_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long a
 
     if (is_capio_path(oldpath_abs)) {
         rename_capio_path(oldpath_abs, newpath_abs);
-        rename_request(tid, oldpath_abs, newpath_abs);
 
     } else if (is_capio_path(newpath_abs)) {
-        rename_request(tid, oldpath_abs, newpath_abs);
+
+        for(auto fd : capio_files_paths->at(oldpath_abs)){
+            add_capio_path(newpath_abs);
+            capio_files_paths->at(newpath_abs).insert(fd);
+            capio_files_descriptors->insert({fd, newpath_abs});
+        }
+        delete_capio_path(oldpath_abs);
     }
 
     return CAPIO_POSIX_SYSCALL_SUCCESS;

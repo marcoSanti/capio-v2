@@ -39,7 +39,8 @@ inline int capio_openat(int dirfd, const std::string_view &pathname, int flags, 
     if (is_capio_path(path)) {
 
         auto fd = static_cast<int>(syscall_no_intercept(SYS_open, path.c_str(), flags, mode));
-
+        LOG("opened file descriptor is %d", fd);
+        
         if (fd == -1) {
             return fd;
         }
@@ -72,8 +73,9 @@ int creat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long ar
     long tid    = syscall_no_intercept(SYS_gettid);
     int flags   = static_cast<int>(arg1);
     mode_t mode = static_cast<int>(arg2);
-
-    return posix_return_value(capio_openat(AT_FDCWD, pathname, flags, tid, mode), result);
+    START_LOG(tid, "call(path=%s, flags=%d, mode=%d)", pathname.data(), flags, mode);
+    return posix_return_value(
+        capio_openat(AT_FDCWD, pathname, O_CREAT | O_WRONLY | O_TRUNC, tid, mode), result);
 }
 
 int open_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
@@ -81,7 +83,7 @@ int open_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
     int flags   = static_cast<int>(arg1);
     mode_t mode = static_cast<int>(arg2);
     long tid    = syscall_no_intercept(SYS_gettid);
-
+    START_LOG(tid, "call(path=%s, flags=%d, mode=%d)", pathname.data(), flags, mode);
     return posix_return_value(capio_openat(AT_FDCWD, pathname, flags, tid, mode), result);
 }
 
@@ -91,6 +93,7 @@ int openat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long a
     int flags   = static_cast<int>(arg1);
     mode_t mode = static_cast<int>(arg2);
     long tid    = syscall_no_intercept(SYS_gettid);
+    START_LOG(tid, "call(path=%s, flags=%d, mode=%d)", pathname.data(), flags, mode);
 
     return posix_return_value(capio_openat(dirfd, pathname, flags, tid, mode), result);
 }

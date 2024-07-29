@@ -1,7 +1,6 @@
 #ifndef HANDLERS_HPP
 #define HANDLERS_HPP
 
-
 #include "handlers/close.hpp"
 #include "handlers/consent.hpp"
 #include "handlers/create.hpp"

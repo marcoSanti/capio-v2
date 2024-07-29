@@ -24,12 +24,11 @@ inline void read_handler(const char *const str) {
         return;
     }
 
-    if(std::filesystem::file_size(path) >= end_of_read){
+    if (std::filesystem::file_size(path) >= end_of_read) {
         client_manager->reply_to_client(tid, 1);
-    }else{
+    } else {
         client_manager->add_thread_awaiting_data(path, tid, end_of_read);
     }
-
 }
 
 #endif // READ_HPP

@@ -96,15 +96,15 @@ class ClientManager {
         if (thread_awaiting_data->find(path) == thread_awaiting_data->end()) {
             auto th = thread_awaiting_data->at(path);
             std::vector<int> item_to_delete;
-            for(auto item : *th){
-                if(item.second >= std::filesystem::file_size(path)){
+            for (auto item : *th) {
+                if (item.second >= std::filesystem::file_size(path)) {
                     reply_to_client(item.first, path_size);
                     item_to_delete.emplace_back(item.first);
                 }
             }
 
-            //cleanup of served clients
-            for(auto itm : item_to_delete){
+            // cleanup of served clients
+            for (auto itm : item_to_delete) {
                 th->erase(itm);
             }
         }

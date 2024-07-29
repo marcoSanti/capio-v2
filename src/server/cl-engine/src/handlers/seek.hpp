@@ -9,16 +9,14 @@ inline void seek_handler(const char *const str) {
     START_LOG(gettid(), "call()");
     std::filesystem::path filename(path);
 
-
-    //TODO: MIGHT NOT BE NEEDED
+    // TODO: MIGHT NOT BE NEEDED
     if (path == get_capio_dir() || !capio_configuration->file_to_be_handled(filename)) {
         return;
     }
     auto path_size = std::filesystem::file_size(path);
-    if(path_size >= target_offset) {
+    if (path_size >= target_offset) {
         client_manager->reply_to_client(tid, path_size);
-    }else{
-
+    } else {
     }
 }
 

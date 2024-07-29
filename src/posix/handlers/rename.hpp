@@ -25,7 +25,7 @@ int rename_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long a
 
     } else if (is_capio_path(newpath_abs)) {
 
-        for(auto fd : capio_files_paths->at(oldpath_abs)){
+        for (auto fd : capio_files_paths->at(oldpath_abs)) {
             add_capio_path(newpath_abs);
             capio_files_paths->at(newpath_abs).insert(fd);
             capio_files_descriptors->insert({fd, newpath_abs});

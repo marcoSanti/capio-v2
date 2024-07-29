@@ -2,7 +2,6 @@
 #define CAPIO_CLOSE_HPP
 #include <cl-engine/cl_engine.hpp>
 
-
 inline void close_handler(const char *const str) {
     int tid;
     char path[PATH_MAX];
@@ -14,7 +13,7 @@ inline void close_handler(const char *const str) {
         return;
     }
 
-    //TODO: gestire le CoC
+    // TODO: gestire le CoC
 }
 
 #endif // CAPIO_CLOSE_HPP

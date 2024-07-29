@@ -37,7 +37,6 @@ CSDataBufferMap_t data_buffers;
 
 #include "cl-engine/cl_engine.hpp"
 
-
 std::string parseCLI(int argc, char **argv) {
     Logger *log;
 
@@ -183,7 +182,7 @@ int main(int argc, char **argv) {
 
     setup_signal_handlers();
 
-    cl_engine      = new ClEngine(config_path);
+    cl_engine = new ClEngine(config_path);
     cl_engine->start();
 
     return 0;

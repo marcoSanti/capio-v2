@@ -39,6 +39,11 @@ inline int capio_openat(int dirfd, const std::string_view &pathname, int flags, 
 
         auto fd = static_cast<int>(syscall_no_intercept(SYS_open, path.c_str(), flags));
 
+        if(fd == -1){
+            errno = EEXIST;
+            return fd;
+        }
+
         bool create = (flags & O_CREAT) == O_CREAT;
         bool excl   = (flags & O_EXCL) == O_EXCL;
 

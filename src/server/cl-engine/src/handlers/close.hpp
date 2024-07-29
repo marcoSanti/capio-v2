@@ -14,6 +14,7 @@ inline void close_handler(const char *const str) {
         return;
     }
 
+    //TODO: gestire le CoC
 }
 
 #endif // CAPIO_CLOSE_HPP

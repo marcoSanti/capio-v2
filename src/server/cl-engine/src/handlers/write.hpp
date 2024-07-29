@@ -12,6 +12,8 @@ inline void write_handler(const char *const str) {
         return;
     }
 
+    client_manager->unlock_thread_awaiting_data(path);
+
 }
 
 #endif //WRITE_HPP

@@ -3,13 +3,12 @@
 
 #include <cl-engine/cl_engine.hpp>
 
-
 inline void create_handler(const char *const str) {
     int tid;
     char path[PATH_MAX];
     sscanf(str, "%d %s", &tid, path);
-    std::filesystem::path filename(path);
 
+    client_manager->unlock_thread_awaiting_creation(path);
 }
 
 #endif // CAPIO_CREATE_HPP

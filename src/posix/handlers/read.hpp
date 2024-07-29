@@ -5,8 +5,6 @@
 
 inline off64_t capio_read(int fd, void *buffer, off64_t count, long tid) {
     START_LOG(tid, "call(fd=%d, buf=0x%08x, count=%ld)", fd, buffer, count);
-
-
 }
 
 inline ssize_t capio_readv(int fd, const struct iovec *iov, int iovcnt, long tid) {
@@ -44,7 +42,7 @@ int read_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
     long tid     = syscall_no_intercept(SYS_gettid);
 
     if (exists_capio_fd(fd)) {
-        read_request(get_capio_fd_path(fd), count, tid, fd);
+        read_request(get_capio_fd_path(fd), get_capio_fd_offset(fd) + count, tid, fd);
     }
     return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
 }

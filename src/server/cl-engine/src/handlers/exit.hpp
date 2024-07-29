@@ -9,6 +9,8 @@ inline void exit_handler(const char *const str) {
     char path[PATH_MAX];
     sscanf(str, "%d", &tid);
 
+    //TODO: handle commits on termination
+
 }
 
 #endif // CAPIO_EXIT_HPP

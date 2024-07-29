@@ -42,8 +42,8 @@ inline void consent_to_proceed_request(const std::filesystem::path &path, const 
     bufs_response->at(tid)->read(&res);
 }
 
-inline void seek_request(const std::filesystem::path &path, const long offset, const int whence,
-                         const long tid, int fd) {
+inline off64_t seek_request(const std::filesystem::path &path, const long offset, const int whence,
+                            const long tid, int fd) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, offset=%ld, tid=%ld)", path.c_str(), offset,
               tid);
     char req[CAPIO_REQ_MAX_SIZE];
@@ -52,6 +52,7 @@ inline void seek_request(const std::filesystem::path &path, const long offset, c
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;
     bufs_response->at(tid)->read(&res);
+    return res;
 }
 
 // non blocking
@@ -61,7 +62,6 @@ inline void close_request(const std::filesystem::path &path, const long tid) {
     sprintf(req, "%04d %ld %s", CAPIO_REQUEST_CLOSE, tid, path.c_str());
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
-
 
 // non blocking
 inline void create_request(const int fd, const std::filesystem::path &path, const long tid) {
@@ -107,12 +107,12 @@ inline void open_request(const int fd, const std::filesystem::path &path, const 
 }
 
 // return amount of readable bytes
-inline off64_t read_request(const std::filesystem::path &path, const off64_t count, const long tid,
-                            const long fd) {
-    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld, fd=%ld)", path.c_str(),
-              count, tid, fd);
+inline off64_t read_request(const std::filesystem::path &path, const off64_t end_of_Read,
+                            const long tid, const long fd) {
+    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, end_of_Read=%ld, tid=%ld, fd=%ld)",
+              path.c_str(), end_of_Read, tid, fd);
     char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %s %ld %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, fd, count);
+    sprintf(req, "%04d %s %ld %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, fd, end_of_Read);
     LOG("Sending read request %s", req);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;

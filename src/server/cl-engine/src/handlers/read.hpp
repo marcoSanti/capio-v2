@@ -3,11 +3,11 @@
 
 inline void read_handler(const char *const str) {
 
-    long tid, read_size, fd;
+    long tid, end_of_read, fd;
     char path[PATH_MAX];
 
-    sscanf(str, "%s %ld %ld %ld", path, &tid, &fd, &read_size);
-    START_LOG(gettid(), "call(path=%s, tid=%ld, count=%ld)", path, tid, read_size);
+    sscanf(str, "%s %ld %ld %ld", path, &tid, &fd, &end_of_read);
+    START_LOG(gettid(), "call(path=%s, tid=%ld, count=%ld)", path, tid, end_of_read);
 
     std::filesystem::path path_fs(path);
     // Skip operations on CAPIO_DIR
@@ -19,11 +19,16 @@ inline void read_handler(const char *const str) {
     }
 
     if (!capio_configuration->file_to_be_handled(path_fs)) {
-        LOG("Ignore calls as fiel should not be treated by CAPIO");
+        LOG("Ignore calls as file should not be treated by CAPIO");
         client_manager->reply_to_client(tid, 1);
         return;
     }
 
+    if(std::filesystem::file_size(path) >= end_of_read){
+        client_manager->reply_to_client(tid, 1);
+    }else{
+        client_manager->add_thread_awaiting_data(path, tid, end_of_read);
+    }
 
 }
 

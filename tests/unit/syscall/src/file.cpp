@@ -54,7 +54,7 @@ TEST(SystemCallTest, TestOpenFailsWithOExclIfFileAlreadyExists) {
     EXPECT_EQ(access(PATHNAME, F_OK), 0);
     fd = open(PATHNAME, flags, S_IRUSR | S_IWUSR);
     EXPECT_EQ(fd, -1);
-    //EXPECT_EQ(errno, EEXIST);
+    EXPECT_EQ(errno, EEXIST);
     EXPECT_NE(unlink(PATHNAME), -1);
     EXPECT_NE(access(PATHNAME, F_OK), 0);
 }

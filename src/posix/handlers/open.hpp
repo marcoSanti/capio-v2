@@ -40,7 +40,7 @@ inline int capio_openat(int dirfd, const std::string_view &pathname, int flags, 
 
         auto fd = static_cast<int>(syscall_no_intercept(SYS_open, path.c_str(), flags, mode));
         LOG("opened file descriptor is %d", fd);
-        
+
         if (fd == -1) {
             return fd;
         }
@@ -95,7 +95,22 @@ int openat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long a
     long tid    = syscall_no_intercept(SYS_gettid);
     START_LOG(tid, "call(path=%s, flags=%d, mode=%d)", pathname.data(), flags, mode);
 
-    return posix_return_value(capio_openat(dirfd, pathname, flags, tid, mode), result);
+    if (is_capio_path(pathname)) {
+        if ((flags & O_CREAT) == O_CREAT) {
+            create_request(-1, pathname.data(), tid);
+        } else {
+            open_request(-1, pathname.data(), tid);
+        }
+    }
+
+    int fd = static_cast<int>(syscall_no_intercept(SYS_openat, arg0, arg1, arg2, arg3, arg4, arg5));
+
+    if (is_capio_path(pathname)) {
+        add_capio_fd(tid, pathname.data(), fd, 0, CAPIO_DEFAULT_FILE_INITIAL_SIZE, flags,
+                     (flags & O_CLOEXEC) == O_CLOEXEC);
+    }
+
+    return fd;
 }
 
 #endif // SYS_creat || SYS_open || SYS_openat

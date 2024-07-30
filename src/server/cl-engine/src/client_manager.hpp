@@ -120,15 +120,13 @@ class ClientManager {
         }
     }
 
-
-    void add_producer_file_path(int tid, std::string& path) const {
+    void add_producer_file_path(int tid, std::string &path) const {
         files_to_be_committed_by_tid->at(tid)->emplace_back(path);
     }
 
     [[nodiscard]] auto get_produced_files(int tid) const {
         return files_to_be_committed_by_tid->at(tid);
     }
-
 };
 
 inline ClientManager *client_manager;

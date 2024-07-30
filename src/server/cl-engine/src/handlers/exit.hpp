@@ -6,7 +6,7 @@ inline void exit_handler(const char *const str) {
     // TODO: register files open for each tid ti register a close
     int tid;
     sscanf(str, "%d", &tid);
-
+    START_LOG(gettid(), "call(tid=%d)", tid);
     CapioFileManager::set_committed(tid);
     client_manager->remove_client(tid);
 }

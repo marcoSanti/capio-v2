@@ -121,6 +121,16 @@ inline off64_t read_request(const std::filesystem::path &path, const off64_t end
     return res;
 }
 
+// non blocking
+inline void rename_request(const std::filesystem::path &old_path,
+                           const std::filesystem::path &new_path, const long tid) {
+    START_LOG(capio_syscall(SYS_gettid), "call(old=%s, new=%s, tid=%ld)", old_path.c_str(),
+              new_path.c_str(), tid);
+    char req[CAPIO_REQ_MAX_SIZE];
+    sprintf(req, "%04d %ld %s %s", CAPIO_REQUEST_RENAME, tid, old_path.c_str(), new_path.c_str());
+    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+}
+
 // non blocking as write is not in the pre port of capio semantics
 inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid,
                           const long fd) {

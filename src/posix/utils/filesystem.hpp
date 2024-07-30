@@ -277,11 +277,17 @@ inline void init_filesystem() {
  * @return
  */
 inline void rename_capio_path(const std::string &oldpath, const std::string &newpath) {
-    auto entry  = capio_files_paths->extract(oldpath);
-    entry.key() = newpath;
-    capio_files_paths->insert(std::move(entry));
-    for (auto fd : capio_files_paths->at(newpath)) {
-        capio_files_descriptors->at(fd).assign(newpath);
+    START_LOG(syscall_no_intercept(SYS_gettid), "call(oldpath=%s, newpath=%s)", oldpath.c_str(),
+              newpath.c_str());
+    if (capio_files_paths->find(oldpath) != capio_files_paths->find(newpath)) {
+        auto entry  = capio_files_paths->extract(oldpath);
+        entry.key() = newpath;
+        capio_files_paths->insert(std::move(entry));
+        for (auto fd : capio_files_paths->at(newpath)) {
+            capio_files_descriptors->at(fd).assign(newpath);
+        }
+    }else {
+        LOG("Warning: olpath not found in capio_files_paths");
     }
 }
 

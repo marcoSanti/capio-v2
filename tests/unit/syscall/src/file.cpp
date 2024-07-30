@@ -21,7 +21,6 @@ TEST(SystemCallTest, TestFileCreateReopenClose) {
     EXPECT_NE(access(PATHNAME, F_OK), 0);
 }
 
-
 TEST(SystemCallTest, TestCreat) {
     constexpr const char *PATHNAME = "test_file.txt";
     int fd                         = creat(PATHNAME, S_IRUSR | S_IWUSR);

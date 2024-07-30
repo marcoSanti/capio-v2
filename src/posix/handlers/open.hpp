@@ -95,8 +95,8 @@ int open_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
 int openat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
     int dirfd = static_cast<int>(arg0);
     std::string pathname(reinterpret_cast<const char *>(arg1));
-    int flags   = static_cast<int>(arg1);
-    mode_t mode = static_cast<int>(arg2);
+    int flags   = static_cast<int>(arg2);
+    mode_t mode = static_cast<int>(arg3);
     long tid    = syscall_no_intercept(SYS_gettid);
     START_LOG(tid, "call(path=%s, flags=%d, mode=%d)", pathname.data(), flags, mode);
 

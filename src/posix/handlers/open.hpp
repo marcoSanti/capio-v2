@@ -37,25 +37,23 @@ std::string compute_abs_path(char *pathname, int dirfd) {
 int creat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
     std::string pathname(reinterpret_cast<const char *>(arg0));
     long tid    = syscall_no_intercept(SYS_gettid);
-    int flags   = static_cast<int>(arg1);
+    int flags   = O_CREAT | O_WRONLY | O_TRUNC;
     mode_t mode = static_cast<int>(arg2);
     START_LOG(tid, "call(path=%s, flags=%d, mode=%d)", pathname.data(), flags, mode);
 
     std::string path = compute_abs_path(pathname.data(), -1);
 
     if (is_capio_path(path)) {
-        if ((flags & O_CREAT) == O_CREAT) {
-            LOG("O_CREAT");
-            create_request(-1, path.data(), tid);
-        } else {
-            LOG("not O_CREAT");
-            open_request(-1, path.data(), tid);
-        }
+        create_request(-1, path.data(), tid);
+        LOG("Create request sent");
     }
 
-    int fd = static_cast<int>(syscall_no_intercept(SYS_openat, arg0, arg1, arg2, arg3, arg4, arg5));
+    int fd = static_cast<int>(syscall_no_intercept(SYS_creat, arg0, arg1, arg2, arg3, arg4, arg5));
+
+    LOG("fd=%d", fd);
 
     if (is_capio_path(path)) {
+        LOG("Registering path and fd");
         add_capio_fd(tid, path, fd, 0, CAPIO_DEFAULT_FILE_INITIAL_SIZE, flags,
                      (flags & O_CLOEXEC) == O_CLOEXEC);
     }

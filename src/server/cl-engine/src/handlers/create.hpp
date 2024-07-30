@@ -9,6 +9,8 @@ inline void create_handler(const char *const str) {
     sscanf(str, "%d %s", &tid, path);
 
     client_manager->unlock_thread_awaiting_creation(path);
+
+
 }
 
 #endif // CAPIO_CREATE_HPP

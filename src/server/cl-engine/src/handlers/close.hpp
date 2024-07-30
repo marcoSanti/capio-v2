@@ -13,7 +13,7 @@ inline void close_handler(const char *const str) {
         return;
     }
 
-    // TODO: gestire le CoC
+    CapioFileManager::set_committed(path);
 }
 
 #endif // CAPIO_CLOSE_HPP

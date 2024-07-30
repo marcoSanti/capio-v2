@@ -53,7 +53,12 @@ int readv_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long ar
     auto iovcnt     = static_cast<int>(arg2);
     long tid        = syscall_no_intercept(SYS_gettid);
 
-    return posix_return_value(capio_readv(fd, iov, iovcnt, tid), result);
+    // return posix_return_value(capio_readv(fd, iov, iovcnt, tid), result);
+    if (exists_capio_fd(fd)) {
+        read_request(get_capio_fd_path(fd), get_capio_fd_offset(fd) + iovcnt * sizeof(iovec), tid,
+                     fd);
+    }
+    return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;
 }
 
 #endif // SYS_read || SYS_readv

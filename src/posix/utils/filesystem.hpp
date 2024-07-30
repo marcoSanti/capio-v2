@@ -129,11 +129,16 @@ inline void delete_capio_fd(int fd) {
  */
 inline void delete_capio_path(const std::string &path) {
     START_LOG(syscall_no_intercept(SYS_gettid), "call(path=%s)", path.c_str());
-    auto it = capio_files_paths->at(path).begin();
-    while (it != capio_files_paths->at(path).end()) {
-        delete_capio_fd(*it++);
+    if (capio_files_paths->find(path) != capio_files_paths->end()) {
+        auto it = capio_files_paths->at(path).begin();
+        LOG("Proceeding to remove fds");
+        while (it != capio_files_paths->at(path).end()) {
+            delete_capio_fd(*it++);
+        }
+        LOG("Proceeding to remove path from capio_files_paths");
+        capio_files_paths->erase(path);
+        LOG("Cleanup completed");
     }
-    capio_files_paths->erase(path);
 }
 
 /**

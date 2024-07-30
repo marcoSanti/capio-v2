@@ -25,15 +25,12 @@ class ClEngine {
         _request_handlers[CAPIO_REQUEST_EXIT_GROUP]          = exit_handler;
         _request_handlers[CAPIO_REQUEST_HANDSHAKE_NAMED]     = handshake_named_handler;
         _request_handlers[CAPIO_REQUEST_HANDSHAKE_ANONYMOUS] = handshake_anonymous_handler;
-        _request_handlers[CAPIO_REQUEST_MKDIR] =
-            create_handler; // TODO: probably can be handled with create on posix library
-        _request_handlers[CAPIO_REQUEST_OPEN]   = open_handler;
-        _request_handlers[CAPIO_REQUEST_READ]   = read_handler;
-        _request_handlers[CAPIO_REQUEST_RENAME] = nullptr;
-        _request_handlers[CAPIO_REQUEST_SEEK]   = seek_handler;
-        _request_handlers[CAPIO_REQUEST_UNLINK] = nullptr;
-        _request_handlers[CAPIO_REQUEST_WRITE]  = write_handler;
-        _request_handlers[CAPIO_REQUEST_RMDIR]  = nullptr;
+        _request_handlers[CAPIO_REQUEST_MKDIR]               = create_handler;
+        _request_handlers[CAPIO_REQUEST_OPEN]                = open_handler;
+        _request_handlers[CAPIO_REQUEST_READ]                = read_handler;
+        _request_handlers[CAPIO_REQUEST_RENAME]              = nullptr;
+        _request_handlers[CAPIO_REQUEST_SEEK]                = seek_handler;
+        _request_handlers[CAPIO_REQUEST_WRITE]               = write_handler;
 
         return _request_handlers;
     }

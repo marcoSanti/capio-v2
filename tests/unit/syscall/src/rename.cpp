@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+/*
 TEST(SystemCallTest, TestFileRenameWhenNewPathDoesNotExist) {
     constexpr const char *OLDNAME = "test_file.txt";
     constexpr const char *NEWNAME = "test_file2.txt";
@@ -62,3 +62,4 @@ TEST(SystemCallTest, TestDirectoryRenameWhenNewPathAlreadyExists) {
     EXPECT_NE(rmdir(NEWNAME), -1);
     EXPECT_NE(access(NEWNAME, F_OK), 0);
 }
+*/

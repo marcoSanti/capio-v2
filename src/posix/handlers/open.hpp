@@ -52,13 +52,14 @@ int creat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long ar
 
     LOG("fd=%d", fd);
 
-    if (is_capio_path(path)) {
+    if (is_capio_path(path) && fd >= 0) {
         LOG("Registering path and fd");
         add_capio_fd(tid, path, fd, 0, CAPIO_DEFAULT_FILE_INITIAL_SIZE, flags,
                      (flags & O_CLOEXEC) == O_CLOEXEC);
     }
 
-    return fd;
+    *result = fd;
+    return CAPIO_POSIX_SYSCALL_SUCCESS;
 }
 
 int open_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
@@ -82,12 +83,14 @@ int open_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
 
     int fd = static_cast<int>(syscall_no_intercept(SYS_open, arg0, arg1, arg2, arg3, arg4, arg5));
 
-    if (is_capio_path(path)) {
+    if (is_capio_path(path) && fd >= 0) {
+        LOG("Adding capio path");
         add_capio_fd(tid, path, fd, 0, CAPIO_DEFAULT_FILE_INITIAL_SIZE, flags,
                      (flags & O_CLOEXEC) == O_CLOEXEC);
     }
 
-    return fd;
+    *result = fd;
+    return CAPIO_POSIX_SYSCALL_SUCCESS;
 }
 
 int openat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
@@ -111,13 +114,16 @@ int openat_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long a
     }
 
     int fd = static_cast<int>(syscall_no_intercept(SYS_openat, arg0, arg1, arg2, arg3, arg4, arg5));
+    LOG("fd=%d", fd);
 
-    if (is_capio_path(path)) {
+    if (is_capio_path(path) && fd >= 0) {
+        LOG("Adding capio path");
         add_capio_fd(tid, path, fd, 0, CAPIO_DEFAULT_FILE_INITIAL_SIZE, flags,
                      (flags & O_CLOEXEC) == O_CLOEXEC);
     }
 
-    return fd;
+    *result = fd;
+    return CAPIO_POSIX_SYSCALL_SUCCESS;
 }
 
 #endif // SYS_creat || SYS_open || SYS_openat

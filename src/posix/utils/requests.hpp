@@ -101,7 +101,7 @@ class ReadRequestCache {
         }
 
         if (end_of_read > max_read) {
-            max_read = _read_request(path, end_of_read, tid, fd);
+            max_read = _read_request(current_path, end_of_read, tid, fd);
             if (max_read == -1) {
                 is_committed = true;
             }

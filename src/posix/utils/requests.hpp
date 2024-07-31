@@ -34,9 +34,7 @@ class WriteRequestCache {
   public:
     explicit WriteRequestCache(long long max_size) : _max_size(max_size) {}
 
-    ~WriteRequestCache(){
-        this->flush(capio_syscall(SYS_gettid));
-    }
+    ~WriteRequestCache() { this->flush(capio_syscall(SYS_gettid)); }
 
     void write_request(std::filesystem::path path, int tid, int fd, long count) {
 
@@ -62,6 +60,57 @@ class WriteRequestCache {
 
 WriteRequestCache *write_request_cache;
 
+class ReadRequestCache {
+    int current_fd     = -1;
+    long long max_read = 0;
+    bool is_committed  = false;
+
+    std::filesystem::path current_path;
+
+    // return amount of readable bytes
+    inline off64_t _read_request(const std::filesystem::path &path, const off64_t end_of_Read,
+                                 const long tid, const long fd) {
+        START_LOG(capio_syscall(SYS_gettid), "call(path=%s, end_of_Read=%ld, tid=%ld, fd=%ld)",
+                  path.c_str(), end_of_Read, tid, fd);
+        char req[CAPIO_REQ_MAX_SIZE];
+        sprintf(req, "%04d %s %ld %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, fd, end_of_Read);
+        LOG("Sending read request %s", req);
+        buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+        off64_t res;
+        bufs_response->at(tid)->read(&res);
+        LOG("Response to request is %ld", res);
+        return res;
+    }
+
+  public:
+    explicit ReadRequestCache() = default;
+
+    ~ReadRequestCache() = default;
+
+    void read_request(std::filesystem::path path, long end_of_read, int tid, int fd) {
+
+        if (fd != current_fd) {
+            current_path = std::move(path);
+            current_fd   = fd;
+            max_read     = 0;
+            is_committed = false;
+        }
+
+        if (is_committed) {
+            return;
+        }
+
+        if (end_of_read > max_read) {
+            max_read = _read_request(path, end_of_read, tid, fd);
+            if (max_read == -1) {
+                is_committed = true;
+            }
+        }
+    };
+};
+
+ReadRequestCache *read_request_cache;
+
 /**
  * Initialize request and response buffers
  * @return
@@ -72,8 +121,10 @@ inline void init_client() {
         new CircularBuffer<char>(SHM_COMM_CHAN_NAME, CAPIO_REQ_BUFF_CNT, CAPIO_REQ_MAX_SIZE);
     bufs_response = new CPBufResponse_t();
 
-    //TODO: use var to set cache size
+    // TODO: use var to set cache size
+    // TODO: also enable multithreading
     write_request_cache = new WriteRequestCache(8192);
+    read_request_cache  = new ReadRequestCache();
 }
 
 /**
@@ -149,21 +200,6 @@ inline void open_request(const int fd, const std::filesystem::path &path, const 
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
     off64_t res;
     bufs_response->at(tid)->read(&res);
-}
-
-// return amount of readable bytes
-inline off64_t read_request(const std::filesystem::path &path, const off64_t end_of_Read,
-                            const long tid, const long fd) {
-    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, end_of_Read=%ld, tid=%ld, fd=%ld)",
-              path.c_str(), end_of_Read, tid, fd);
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %s %ld %ld %ld", CAPIO_REQUEST_READ, path.c_str(), tid, fd, end_of_Read);
-    LOG("Sending read request %s", req);
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
-    off64_t res;
-    bufs_response->at(tid)->read(&res);
-    LOG("Response to request is %ld", res);
-    return res;
 }
 
 // non blocking

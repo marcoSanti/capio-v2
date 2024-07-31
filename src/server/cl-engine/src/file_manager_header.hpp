@@ -3,7 +3,7 @@
 
 class CapioFileManager {
   public:
-    static void set_committed(const std::filesystem::path& path);
+    static void set_committed(const std::filesystem::path &path);
     static void set_committed(long tid);
     static bool is_committed(const std::filesystem::path &path);
 };

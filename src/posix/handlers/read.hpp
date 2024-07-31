@@ -12,7 +12,7 @@ int read_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
     if (exists_capio_fd(fd)) {
         auto computed_offset = get_capio_fd_offset(fd) + count;
 
-        read_request(get_capio_fd_path(fd), computed_offset, tid, fd);
+        read_request_cache->read_request(get_capio_fd_path(fd), computed_offset, tid, fd);
 
         set_capio_fd_offset(fd, computed_offset);
     }
@@ -28,8 +28,8 @@ int readv_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long ar
     if (exists_capio_fd(fd)) {
         auto computed_offset = get_capio_fd_offset(fd) + iovcnt * sizeof(iovec);
 
-        read_request(get_capio_fd_path(fd), computed_offset, tid, fd);
-        
+        read_request_cache->read_request(get_capio_fd_path(fd), computed_offset, tid, fd);
+
         set_capio_fd_offset(fd, computed_offset);
     }
     return CAPIO_POSIX_SYSCALL_REQUEST_SKIP;

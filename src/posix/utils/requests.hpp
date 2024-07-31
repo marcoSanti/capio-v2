@@ -1,6 +1,8 @@
 #ifndef CAPIO_POSIX_UTILS_REQUESTS_HPP
 #define CAPIO_POSIX_UTILS_REQUESTS_HPP
 
+#include <utility>
+
 #include "capio/requests.hpp"
 
 #include "env.hpp"
@@ -9,6 +11,56 @@
 
 inline CircularBuffer<char> *buf_requests;
 inline CPBufResponse_t *bufs_response;
+
+class WriteRequestCache {
+
+    int current_fd         = -1;
+    long long current_size = 0;
+
+    const long long _max_size;
+
+    std::filesystem::path current_path;
+
+    // non-blocking as write is not in the pre port of CAPIO semantics
+    inline void _write_request(const off64_t count, const long tid, const long fd) {
+        START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)",
+                  current_path.c_str(), count, tid);
+        char req[CAPIO_REQ_MAX_SIZE];
+        sprintf(req, "%04d %ld %ld %s %ld", CAPIO_REQUEST_WRITE, tid, fd, current_path.c_str(),
+                count);
+        buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
+    }
+
+  public:
+    explicit WriteRequestCache(long long max_size) : _max_size(max_size) {}
+
+    ~WriteRequestCache(){
+        this->flush(capio_syscall(SYS_gettid));
+    }
+
+    void write_request(std::filesystem::path path, int tid, int fd, long count) {
+
+        if (fd != current_fd) {
+            this->flush(tid);
+            current_path = std::move(path);
+            current_fd   = fd;
+        }
+        current_size += count;
+
+        if (current_size > _max_size) {
+            this->flush(tid);
+        }
+    };
+
+    void flush(int tid) {
+        if (current_fd != -1 && current_size > 0) {
+            _write_request(tid, current_fd, current_size);
+        }
+        current_size = 0;
+    }
+};
+
+WriteRequestCache *write_request_cache;
 
 /**
  * Initialize request and response buffers
@@ -19,6 +71,9 @@ inline void init_client() {
     buf_requests =
         new CircularBuffer<char>(SHM_COMM_CHAN_NAME, CAPIO_REQ_BUFF_CNT, CAPIO_REQ_MAX_SIZE);
     bufs_response = new CPBufResponse_t();
+
+    //TODO: use var to set cache size
+    write_request_cache = new WriteRequestCache(8192);
 }
 
 /**
@@ -45,6 +100,7 @@ inline void consent_to_proceed_request(const std::filesystem::path &path, const 
 // non blocking
 inline void close_request(const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(path=%s, tid=%ld)", path.c_str(), tid);
+    write_request_cache->flush(tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s", CAPIO_REQUEST_CLOSE, tid, path.c_str());
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
@@ -61,6 +117,7 @@ inline void create_request(const int fd, const std::filesystem::path &path, cons
 // non blocking
 inline void exit_group_request(const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(tid=%ld)", tid);
+    write_request_cache->flush(tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld", CAPIO_REQUEST_EXIT_GROUP, tid);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
@@ -86,6 +143,7 @@ inline void handshake_named_request(const long tid, const long pid, const std::s
 // block until open is possible
 inline void open_request(const int fd, const std::filesystem::path &path, const long tid) {
     START_LOG(capio_syscall(SYS_gettid), "call(fd=%ld, path=%s, tid=%ld)", fd, path.c_str(), tid);
+    write_request_cache->flush(tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %d %s", CAPIO_REQUEST_OPEN, tid, fd, path.c_str());
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
@@ -115,16 +173,6 @@ inline void rename_request(const std::filesystem::path &old_path,
               new_path.c_str(), tid);
     char req[CAPIO_REQ_MAX_SIZE];
     sprintf(req, "%04d %ld %s %s", CAPIO_REQUEST_RENAME, tid, old_path.c_str(), new_path.c_str());
-    buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
-}
-
-// non blocking as write is not in the pre port of capio semantics
-inline void write_request(const std::filesystem::path &path, const off64_t count, const long tid,
-                          const long fd) {
-    START_LOG(capio_syscall(SYS_gettid), "call(path=%s, count=%ld, tid=%ld)", path.c_str(), count,
-              tid);
-    char req[CAPIO_REQ_MAX_SIZE];
-    sprintf(req, "%04d %ld %ld %s %ld", CAPIO_REQUEST_WRITE, tid, fd, path.c_str(), count);
     buf_requests->write(req, CAPIO_REQ_MAX_SIZE);
 }
 

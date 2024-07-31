@@ -12,6 +12,7 @@ inline void write_handler(const char *const str) {
         return;
     }
 
+    LOG("File needs to be handled");
     client_manager->unlock_thread_awaiting_data(path);
 }
 

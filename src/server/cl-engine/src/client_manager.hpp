@@ -100,21 +100,26 @@ class ClientManager {
     }
 
     void unlock_thread_awaiting_data(std::string path) {
+        START_LOG(gettid(), "call(path=%s)", path.c_str());
         auto path_size = std::filesystem::file_size(path);
 
-        if (thread_awaiting_data->find(path) == thread_awaiting_data->end()) {
+        if (thread_awaiting_data->find(path) != thread_awaiting_data->end()) {
+            LOG("Path has thread awaiting");
             auto th = thread_awaiting_data->at(path);
             std::vector<int> item_to_delete;
+
             for (auto item : *th) {
+                LOG("Handling thread");
                 if (CapioFileManager::is_committed(path) ||
                     item.second >= std::filesystem::file_size(path)) {
+                    LOG("Thread %ld can be unlocked", item.first);
                     reply_to_client(item.first, path_size);
                     item_to_delete.emplace_back(item.first);
                 }
             }
-
             // cleanup of served clients
             for (auto itm : item_to_delete) {
+                LOG("Cleanup of thread %ld", itm);
                 th->erase(itm);
             }
         }

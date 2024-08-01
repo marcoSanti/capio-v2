@@ -7,6 +7,9 @@
 
 #include <sys/types.h>
 
+// 64bit unsigned long int type for file offsets
+typedef unsigned long long int capio_off64_t;
+
 // CAPIO files constants
 constexpr size_t CAPIO_DEFAULT_DIR_INITIAL_SIZE   = 1024L * 1024 * 1024;
 constexpr off64_t CAPIO_DEFAULT_FILE_INITIAL_SIZE = 1024L * 1024 * 1024 * 4;

@@ -4,10 +4,9 @@
 #if defined(SYS_read) || defined(SYS_readv)
 
 int read_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
-    int fd       = static_cast<int>(arg0);
-    void *buffer = reinterpret_cast<void *>(arg1);
-    auto count   = static_cast<off64_t>(arg2);
-    long tid     = syscall_no_intercept(SYS_gettid);
+    int fd     = static_cast<int>(arg0);
+    auto count = static_cast<capio_off64_t>(arg2);
+    auto tid   = static_cast<pid_t>(syscall_no_intercept(SYS_gettid));
 
     START_LOG(capio_syscall(SYS_gettid), "call(fd=%d, tid=%d, count=%ld)", fd, tid, count);
 
@@ -25,10 +24,9 @@ int read_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
 }
 
 int readv_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg5, long *result) {
-    auto fd         = static_cast<int>(arg0);
-    const auto *iov = reinterpret_cast<const struct iovec *>(arg1);
-    auto iovcnt     = static_cast<int>(arg2);
-    long tid        = syscall_no_intercept(SYS_gettid);
+    auto fd     = static_cast<int>(arg0);
+    auto iovcnt = static_cast<int>(arg2);
+    auto tid    = static_cast<pid_t>(syscall_no_intercept(SYS_gettid));
 
     if (exists_capio_fd(fd)) {
         auto computed_offset = get_capio_fd_offset(fd) + iovcnt * sizeof(iovec);

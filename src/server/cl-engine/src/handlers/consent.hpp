@@ -8,7 +8,7 @@ This handler only checks if the client is allowed to continue
 */
 
 inline void consent_to_proceed_handler(const char *const str) {
-    int tid;
+    pid_t tid;
     char path[1024];
     sscanf(str, "%d %s", &tid, path);
     START_LOG(gettid(), "call(tid=%d, path=%s)", tid, path);

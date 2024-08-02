@@ -25,6 +25,9 @@ int exit_handler(long arg0, long arg1, long arg2, long arg3, long arg4, long arg
         remove_capio_tid(tid);
     }
 
+    delete write_request_cache;
+    delete read_request_cache;
+
     return CAPIO_POSIX_SYSCALL_SKIP;
 }
 

@@ -64,6 +64,8 @@ void hook_clone_child() {
 
     lock.unlock();
     LOG("Starting child thread %d", tid);
+    write_request_cache = new WriteRequestCache(8192);
+    read_request_cache = new ReadRequestCache();
 }
 
 void hook_clone_parent(long child_tid) {
